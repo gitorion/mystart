@@ -152,7 +152,7 @@ class MyStartScraper:
             disk_cmd2 = subprocess.run(
                 [
                     "grep",
-                    "sd",
+                    "/dev/sd",
                 ],
                 input=disk_cmd1,
                 check=True,
@@ -202,43 +202,40 @@ class MyStartScraper:
             self.vars["disk_pool_size"] = "N/A"
             self.vars["disk_pool_used"] = "N/A"
 
-        try:
-            test = subprocess.run(
-                ["sudo", "liquidctl", "status"],
-                capture_output=True,
-                check=True,
-                text=True,
-                timeout=2,
-            )
-            self.vars["front_left_fan"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Fan 1\" | awk '{print $5}'"]
-            )
-            self.vars["front_right_fan"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Fan 2\" | awk '{print $5}'"]
-            )
-            self.vars["back_fan"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Fan 3\" | awk '{print $5}'"]
-            )
-            self.vars["cpu_temp"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Temp sensor 1\" | awk '{print $5}'"]
-            )
-            self.vars["memory_temp"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Temp sensor 2\" | awk '{print $5}'"]
-            )
-            self.vars["drive_1_temp"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Temp sensor 3\" | awk '{print $5}'"]
-            )
-            self.vars["drive_2_temp"] = subprocess.getoutput(
-                ["sudo liquidctl status | grep \"Temp sensor 4\" | awk '{print $5}'"]
-            )
-        except:
-            self.vars["front_left_fan"] = "N/A"
-            self.vars["front_right_fan"] = "N/A"
-            self.vars["back_fan"] = "N/A"
-            self.vars["cpu_temp"] = "N/A"
-            self.vars["memory_temp"] = "N/A"
-            self.vars["drive_1_temp"] = "N/A"
-            self.vars["drive_2_temp"] = "N/A"
+        if self.vars["host"] == "titan":
+            try:
+                test = subprocess.run(
+                    ["sudo", "liquidctl", "status"],
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                    timeout=2,
+                )
+                self.vars["fan_1"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 1\" | awk '{print $5}'"]
+                )
+                self.vars["fan_2"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 2\" | awk '{print $5}'"]
+                )
+                self.vars["fan_3"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 3\" | awk '{print $5}'"]
+                )
+                self.vars["fan_4"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 4\" | awk '{print $5}'"]
+                )
+                self.vars["fan_5"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 5\" | awk '{print $5}'"]
+                )
+                self.vars["fan_6"] = subprocess.getoutput(
+                    ["sudo liquidctl status | grep \"Fan 6\" | awk '{print $5}'"]
+                )
+            except:
+                self.vars["fan_1"] = "N/A"
+                self.vars["fan_2"] = "N/A"
+                self.vars["fan_3"] = "N/A"
+                self.vars["fan_4"] = "N/A"
+                self.vars["fan_5"] = "N/A"
+                self.vars["fan_6"] = "N/A"
 
         trans_kick_status = subprocess.getoutput(
             [
@@ -247,15 +244,15 @@ class MyStartScraper:
         )
 
         if trans_kick_status == "active (running)":
-            self.vars[
-                "trans_kick_status"
-            ] = f"{trans_kick_status} {mystart_data.thumb_up}"
+            self.vars["trans_kick_status"] = (
+                f"{trans_kick_status} {mystart_data.thumb_up}"
+            )
         elif trans_kick_status == "Unit trans-kick.service could not be found.":
             self.vars["trans_kick_status"] = "N/A"
         else:
-            self.vars[
-                "trans_kick_status"
-            ] = f"{trans_kick_status} {mystart_data.stop_emoji}"
+            self.vars["trans_kick_status"] = (
+                f"{trans_kick_status} {mystart_data.stop_emoji}"
+            )
 
         try:
             self.vars["nord_addr"] = subprocess.run(
@@ -340,9 +337,9 @@ class MyStartScraper:
             f"{Fore.GREEN}[*]{Fore.RESET} Root disk usage\t\t:{Fore.MAGENTA} %s of %s"
         ) % (self.vars.get("diskuse"), self.vars.get("disksize"))
         self.vars["messages"].insert(10, msg8)
-        msg9 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} Disk pool available\t:{Fore.MAGENTA} %s"
-        ) % (self.vars.get("disk_pool_size"))
+        msg9 = (f"{Fore.GREEN}[*]{Fore.RESET} Disk pool size\t:{Fore.MAGENTA} %s") % (
+            self.vars.get("disk_pool_size")
+        )
         self.vars["messages"].insert(11, msg9)
         msg10 = (
             f"{Fore.GREEN}[*]{Fore.RESET} Disk pool used\t\t:{Fore.MAGENTA} %s"
@@ -392,20 +389,19 @@ class MyStartScraper:
 
         if self.vars["host"] == "titan":
             msg16 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Left drive bay fan\t\t:{Fore.MAGENTA} %s/RPM with bay temp: %s/C"
-            ) % (self.vars.get("front_left_fan"), self.vars.get("drive_1_temp"))
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+            ) % (self.vars.get("fan_1"), self.vars.get("fan_2"))
             self.vars["messages"].insert(17, line_border)
             self.vars["messages"].insert(18, msg16)
             msg17 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Right drive bay fan\t:{Fore.MAGENTA} %s/RPM with bay temp: %s/C"
-            ) % (self.vars.get("front_right_fan"), self.vars.get("drive_2_temp"))
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 3 & 4\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+            ) % (self.vars.get("fan_3"), self.vars.get("fan_4"))
             self.vars["messages"].insert(19, msg17)
             msg18 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Back chassis fan\t\t:{Fore.MAGENTA} %s/RPM with Memory temp: %s/C & CPU temp: %s/C"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 5 & 6\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
             ) % (
-                self.vars.get("back_fan"),
-                self.vars.get("memory_temp"),
-                self.vars.get("cpu_temp"),
+                self.vars.get("fan_5"),
+                self.vars.get("fan_6"),
             )
             self.vars["messages"].insert(20, msg18)
 
