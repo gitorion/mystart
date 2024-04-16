@@ -302,7 +302,7 @@ class MyStartScraper:
         self.vars["psa"] = subprocess.getoutput(["ps -aux | wc -l"])
 
         self.vars["active_sessions"] = subprocess.getoutput(
-            ["w | grep -i users | awk '{print $4}'"]
+            ["w | awk '{print $1}'| sed 1,2d | wc -l"]
         )
 
         self.vars["users"] = 0
@@ -403,7 +403,7 @@ class MyStartScraper:
         ) % (self.vars.get("active_sessions"))
         self.vars["messages"].insert(14, msg12)
         msg13 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} Users\t\t:{Fore.MAGENTA} %s user(s) currently logged in"
+            f"{Fore.GREEN}[*]{Fore.RESET} Users\t\t\t:{Fore.MAGENTA} %s user(s) currently logged in"
         ) % (self.vars.get("users"))
         self.vars["messages"].insert(15, msg13)
 
