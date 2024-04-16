@@ -20,6 +20,7 @@ class MyStartScraper:
             ['grep -Po "(?<=^ID=).+" /etc/os-release | sed \'s/"//g\'']
         )
         self.vars["host"] = subprocess.getoutput(["uname -n"])
+        self.vars["user"] = subprocess.getoutput(["id -un"])
         self.vars["cpu_cores"] = int(
             subprocess.getoutput(
                 [
@@ -202,14 +203,14 @@ class MyStartScraper:
             self.vars["disk_pool_size"] = "N/A"
             self.vars["disk_pool_used"] = "N/A"
 
-        if self.vars["host"] == "titan":
+        if self.vars["user"] == "orion" and self.vars["host"] == "titan":
             try:
                 test = subprocess.run(
                     ["sudo", "liquidctl", "status"],
                     capture_output=True,
                     check=True,
                     text=True,
-                    timeout=2,
+                    timeout=1,
                 )
                 self.vars["fan_1"] = subprocess.getoutput(
                     ["sudo liquidctl status | grep \"Fan 1\" | awk '{print $5}'"]
@@ -236,6 +237,13 @@ class MyStartScraper:
                 self.vars["fan_4"] = "N/A"
                 self.vars["fan_5"] = "N/A"
                 self.vars["fan_6"] = "N/A"
+        else:
+            self.vars["fan_1"] = "N/A"
+            self.vars["fan_2"] = "N/A"
+            self.vars["fan_3"] = "N/A"
+            self.vars["fan_4"] = "N/A"
+            self.vars["fan_5"] = "N/A"
+            self.vars["fan_6"] = "N/A"
 
         trans_kick_status = subprocess.getoutput(
             [
@@ -290,7 +298,6 @@ class MyStartScraper:
                 'lastlog -u $USER | tail -n 1 | awk \'{print $4 " " $5 " " $6 " " $7 " from " $3}\''
             ]
         )
-        self.vars["user"] = subprocess.getoutput(["id -un"])
         self.vars["psu"] = subprocess.getoutput(["ps -aux | grep -i $USER | wc -l"])
         self.vars["psa"] = subprocess.getoutput(["ps -aux | wc -l"])
         self.vars["users"] = subprocess.getoutput(['who -q | tail -n1 | cut -c "9-11"'])
@@ -389,16 +396,16 @@ class MyStartScraper:
 
         if self.vars["host"] == "titan":
             msg16 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t\t:{Fore.MAGENTA} %s/rpm & %s/rpm"
             ) % (self.vars.get("fan_1"), self.vars.get("fan_2"))
             self.vars["messages"].insert(17, line_border)
             self.vars["messages"].insert(18, msg16)
             msg17 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 3 & 4\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 3 & 4\t\t\t:{Fore.MAGENTA} %s/rpm & %s/rpm"
             ) % (self.vars.get("fan_3"), self.vars.get("fan_4"))
             self.vars["messages"].insert(19, msg17)
             msg18 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 5 & 6\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 5 & 6\t\t\t:{Fore.MAGENTA} %s/rpm & %s/rpm"
             ) % (
                 self.vars.get("fan_5"),
                 self.vars.get("fan_6"),
