@@ -337,7 +337,7 @@ class MyStartScraper:
             f"{Fore.GREEN}[*]{Fore.RESET} Root disk usage\t\t:{Fore.MAGENTA} %s of %s"
         ) % (self.vars.get("diskuse"), self.vars.get("disksize"))
         self.vars["messages"].insert(10, msg8)
-        msg9 = (f"{Fore.GREEN}[*]{Fore.RESET} Disk pool size\t:{Fore.MAGENTA} %s") % (
+        msg9 = (f"{Fore.GREEN}[*]{Fore.RESET} Disk pool size\t\t:{Fore.MAGENTA} %s") % (
             self.vars.get("disk_pool_size")
         )
         self.vars["messages"].insert(11, msg9)
@@ -389,16 +389,16 @@ class MyStartScraper:
 
         if self.vars["host"] == "titan":
             msg16 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
             ) % (self.vars.get("fan_1"), self.vars.get("fan_2"))
             self.vars["messages"].insert(17, line_border)
             self.vars["messages"].insert(18, msg16)
             msg17 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 3 & 4\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 3 & 4\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
             ) % (self.vars.get("fan_3"), self.vars.get("fan_4"))
             self.vars["messages"].insert(19, msg17)
             msg18 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Fans 5 & 6\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
+                f"{Fore.GREEN}[*]{Fore.RESET} Fans 5 & 6\t\t\t:{Fore.MAGENTA} %s/RPM & %s/RPM"
             ) % (
                 self.vars.get("fan_5"),
                 self.vars.get("fan_6"),
