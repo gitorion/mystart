@@ -16,11 +16,15 @@ class MyStartScraper:
         self.vars["uname"] = subprocess.getoutput(
             ["cat /etc/os-release | grep \"PRETTY\" | cut -d'=' -f2-"]
         )
+
         self.vars["distro"] = subprocess.getoutput(
             ['grep -Po "(?<=^ID=).+" /etc/os-release | sed \'s/"//g\'']
         )
+
         self.vars["host"] = subprocess.getoutput(["uname -n"])
+
         self.vars["user"] = subprocess.getoutput(["id -un"])
+
         self.vars["cpu_cores"] = int(
             subprocess.getoutput(
                 [
@@ -28,6 +32,7 @@ class MyStartScraper:
                 ]
             )
         )
+
         checkip4 = subprocess.getoutput(["ip route get 8.8.8.8 2>/dev/null"])
         if not checkip4:
             self.vars["ipv4"] = "N/A"
@@ -51,12 +56,19 @@ class MyStartScraper:
                 'last | head -n 2 | tail -1 | awk \'{print $1 " on " $2 ", " $4 " " $5 " " $6 " " $7 " from " $3}\''
             ]
         )
+
         self.vars["uptime"] = subprocess.getoutput(["cut -d. -f1 /proc/uptime"])
+
         self.vars["uptime"] = int(self.vars["uptime"])
+
         self.vars["up_days"] = trunc((self.vars.get("uptime") / 60 / 60 / 24))
+
         self.vars["up_hours"] = trunc((self.vars.get("uptime") / 60 / 60 % 24))
+
         self.vars["up_minutes"] = trunc((self.vars.get("uptime") / 60 % 60))
+
         self.vars["up_seconds"] = self.vars.get("uptime") % 60
+
         self.vars["loadavg"] = subprocess.getoutput(
             ['cat /proc/loadavg | awk \'{print $1 " " $2 " " $3 " " $4}\'']
         )
@@ -96,25 +108,31 @@ class MyStartScraper:
             cpu_speeds += float(line)
 
         self.vars["cpu_hz"] = round(((cpu_speeds) / (thread_count)) / 1000, 2)
+
         self.vars["cpu_threads"] = thread_count
+
         cpu_used = float(
             subprocess.getoutput(["ps -eo pcpu | awk '{tot=tot+$1} END {print tot}'"])
         )
 
         cpu_usage = round((cpu_used) / (self.vars.get("cpu_threads")), 2)
         self.vars["cpu_usage"] = f"{cpu_usage} %"
+
         memory_total = float(
             subprocess.getoutput(
                 ["cat /proc/meminfo | grep MemTotal | awk '{print $2}'"]
             )
         )
+
         memory_avail = float(
             subprocess.getoutput(
                 ["cat /proc/meminfo | grep MemAvailable | awk '{print $2}'"]
             )
         )
+
         memtot = round(((memory_total / 1024) / 1024), 2)
         self.vars["memtot"] = f"{memtot}G"
+
         memory_used = round(((memory_total - memory_avail) / 1024 / 1024), 2)
         self.vars["memuse"] = f"{memory_used}G"
 
@@ -123,22 +141,27 @@ class MyStartScraper:
                 ["cat /proc/meminfo | grep SwapTotal | awk '{print $2}'"]
             )
         )
+
         swap_free = float(
             subprocess.getoutput(
                 ["cat /proc/meminfo | grep SwapFree | awk '{print $2}'"]
             )
         )
+
         swaptot = round(((swap_total / 1024) / 1024), 2)
         self.vars["swaptot"] = f"{swaptot}G"
+
         swap_used = round(((swap_total - swap_free) / 1024 / 1024), 2)
         self.vars["swapuse"] = f"{swap_used}G"
 
         self.vars["diskuse"] = subprocess.getoutput(
             ["df -h | awk '{if($(NF) == \"/\") {print $(NF-1); exit;}}'"]
         )
+
         self.vars["disksize"] = subprocess.getoutput(
             ["df -h | awk '{if($(NF) == \"/\") {print $(NF-4); exit;}}'"]
         )
+
         try:
             disk_cmd1 = subprocess.run(
                 [
@@ -293,12 +316,15 @@ class MyStartScraper:
             self.vars["vpn_check"] = f"Protected {mystart_data.thumb_up}"
         else:
             self.vars["vpn_check"] = f"Unprotected {mystart_data.stop_emoji}"
+
         self.vars["thislog"] = subprocess.getoutput(
             [
                 'lastlog -u $USER | tail -n 1 | awk \'{print $4 " " $5 " " $6 " " $7 " from " $3}\''
             ]
         )
+
         self.vars["psu"] = subprocess.getoutput(["ps -aux | grep -i $USER | wc -l"])
+
         self.vars["psa"] = subprocess.getoutput(["ps -aux | wc -l"])
 
         self.vars["active_sessions"] = subprocess.getoutput(
@@ -315,6 +341,8 @@ class MyStartScraper:
             if user not in count_list:
                 self.vars["users"] += 1
                 count_list.append(user)
+
+        # Messages for PrettyTable
 
         line_border = f"{Fore.MAGENTA}======================================================================={Fore.RESET}"
         self.vars["messages"].insert(0, line_border)
