@@ -300,8 +300,21 @@ class MyStartScraper:
         )
         self.vars["psu"] = subprocess.getoutput(["ps -aux | grep -i $USER | wc -l"])
         self.vars["psa"] = subprocess.getoutput(["ps -aux | wc -l"])
-        self.vars["users"] = subprocess.getoutput(['who -q | tail -n1 | cut -c "9-11"'])
-        self.vars["sshusers"] = subprocess.getoutput(["ss | grep -i ssh | wc -l"])
+
+        self.vars["active_sessions"] = subprocess.getoutput(
+            ["w | grep -i users | awk '{print $4}'"]
+        )
+
+        self.vars["users"] = 0
+        all_users = subprocess.getoutput(["w | awk '{print $1}'| sed 1,2d"])
+        users_list = []
+        count_list = []
+        for line in all_users.splitlines():
+            users_list.append(line)
+        for user in users_list:
+            if user not in count_list:
+                self.vars["users"] += 1
+                count_list.append(user)
 
         line_border = f"{Fore.MAGENTA}======================================================================={Fore.RESET}"
         self.vars["messages"].insert(0, line_border)
@@ -386,11 +399,11 @@ class MyStartScraper:
         )
         self.vars["messages"].insert(13, msg11)
         msg12 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} SSH logins\t\t\t:{Fore.MAGENTA} %s user(s) logged in via SSH"
-        ) % (self.vars.get("sshusers"))
+            f"{Fore.GREEN}[*]{Fore.RESET} Sessions\t\t\t:{Fore.MAGENTA} %s current active session(s)"
+        ) % (self.vars.get("active_sessions"))
         self.vars["messages"].insert(14, msg12)
         msg13 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} Total logins\t\t:{Fore.MAGENTA} %s user(s) in total logged in"
+            f"{Fore.GREEN}[*]{Fore.RESET} Users\t\t:{Fore.MAGENTA} %s user(s) currently logged in"
         ) % (self.vars.get("users"))
         self.vars["messages"].insert(15, msg13)
 
