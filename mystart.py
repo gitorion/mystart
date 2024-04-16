@@ -399,12 +399,12 @@ class MyStartScraper:
         )
         self.vars["messages"].insert(13, msg11)
         msg12 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} Sessions\t\t\t:{Fore.MAGENTA} %s current active session(s)"
-        ) % (self.vars.get("active_sessions"))
-        self.vars["messages"].insert(14, msg12)
-        msg13 = (
             f"{Fore.GREEN}[*]{Fore.RESET} Users\t\t\t:{Fore.MAGENTA} %s user(s) currently logged in"
         ) % (self.vars.get("users"))
+        self.vars["messages"].insert(14, msg12)
+        msg13 = (
+            f"{Fore.GREEN}[*]{Fore.RESET} Sessions\t\t\t:{Fore.MAGENTA} %s current active session(s)"
+        ) % (self.vars.get("active_sessions"))
         self.vars["messages"].insert(15, msg13)
 
         if self.vars["host"] == "titan":
@@ -427,7 +427,7 @@ class MyStartScraper:
 
         if self.vars["user"] == "orion" and self.vars["host"] == "titan":
             msg22 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Nord address\t\t:{Fore.MAGENTA} %s"
+                f"{Fore.GREEN}[*]{Fore.RESET} VPN address\t\t:{Fore.MAGENTA} %s"
             ) % (self.vars.get("nord_addr"))
             self.vars["messages"].insert(25, msg22)
             msg23 = (
