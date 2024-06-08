@@ -226,32 +226,32 @@ class MyStartScraper:
             self.vars["disk_pool_size"] = "N/A"
             self.vars["disk_pool_used"] = "N/A"
 
-        if self.vars["user"] == "orion" and self.vars["host"] == "titan":
+        if self.vars["user"] == "root" and self.vars["host"] == "titan":
             try:
                 test = subprocess.run(
-                    ["sudo", "liquidctl", "status"],
+                    ["liquidctl", "status"],
                     capture_output=True,
                     check=True,
                     text=True,
                     timeout=1,
                 )
                 self.vars["fan_1"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 1\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 1\" | awk '{print $5}'"]
                 )
                 self.vars["fan_2"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 2\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 2\" | awk '{print $5}'"]
                 )
                 self.vars["fan_3"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 3\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 3\" | awk '{print $5}'"]
                 )
                 self.vars["fan_4"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 4\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 4\" | awk '{print $5}'"]
                 )
                 self.vars["fan_5"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 5\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 5\" | awk '{print $5}'"]
                 )
                 self.vars["fan_6"] = subprocess.getoutput(
-                    ["sudo liquidctl status | grep \"Fan 6\" | awk '{print $5}'"]
+                    ["liquidctl status | grep \"Fan 6\" | awk '{print $5}'"]
                 )
             except:
                 self.vars["fan_1"] = "N/A"
@@ -435,7 +435,7 @@ class MyStartScraper:
         ) % (self.vars.get("active_sessions"))
         self.vars["messages"].insert(15, msg13)
 
-        if self.vars["host"] == "titan":
+        if self.vars["user"] == "root" and self.vars["host"] == "titan":
             msg16 = (
                 f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t\t:{Fore.MAGENTA} %s/rpm & %s/rpm"
             ) % (self.vars.get("fan_1"), self.vars.get("fan_2"))
