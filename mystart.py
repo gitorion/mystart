@@ -187,31 +187,43 @@ class MyStartScraper:
             disk_total = 0.0
             disk_used = 0.0
             for line in disk_cmd2.splitlines():
-                disk_total += float(
-                    subprocess.run(
-                        [
-                            "awk",
-                            "{print $2}",
-                        ],
-                        input=line,
-                        check=True,
-                        text=True,
-                        capture_output=True,
-                    ).stdout.strip("\n")[:-1]
-                )
+                data_type = subprocess.run(
+                    [
+                        "awk",
+                        "{print $2}",
+                    ],
+                    input=line,
+                    check=True,
+                    text=True,
+                    capture_output=True,
+                ).stdout.strip("\n")[-1:]
 
-                disk_used += float(
-                    subprocess.run(
-                        [
-                            "awk",
-                            "{print $3}",
-                        ],
-                        input=line,
-                        check=True,
-                        text=True,
-                        capture_output=True,
-                    ).stdout.strip("\n")[:-1]
-                )
+                if data_type == "T":
+                    disk_total += float(
+                        subprocess.run(
+                            [
+                                "awk",
+                                "{print $2}",
+                            ],
+                            input=line,
+                            check=True,
+                            text=True,
+                            capture_output=True,
+                        ).stdout.strip("\n")[:-1]
+                    )
+
+                    disk_used += float(
+                        subprocess.run(
+                            [
+                                "awk",
+                                "{print $3}",
+                            ],
+                            input=line,
+                            check=True,
+                            text=True,
+                            capture_output=True,
+                        ).stdout.strip("\n")[:-1]
+                    )
 
             if not disk_total:
                 self.vars["disk_pool_size"] = "N/A"
@@ -228,7 +240,7 @@ class MyStartScraper:
 
         if self.vars["user"] == "root" and self.vars["host"] == "titan":
             try:
-                test = subprocess.run(
+                subprocess.run(
                     ["liquidctl", "status"],
                     capture_output=True,
                     check=True,
