@@ -4,10 +4,10 @@ import subprocess
 from math import trunc
 import mystart_data
 from colorama import Fore
-from prettytable import PrettyTable
+from prettytable.colortable import ColorTable, Themes
 
 
-class MyStartScraper:
+class MyStart:
     def __init__(self):
         self.vars = {}
         self.vars["messages"] = []
@@ -487,7 +487,7 @@ class MyStartScraper:
         return
 
     def payload_table(self):
-        table = PrettyTable()
+        table = ColorTable(theme=Themes.OCEAN)
         table.border = False
         table.field_names = [self.vars["messages"][0]]
 
@@ -500,6 +500,6 @@ class MyStartScraper:
 
 
 if __name__ == "__main__":
-    scraper = MyStartScraper()
-    scraper.vars_generate()
-    scraper.payload_table()
+    mystart = MyStart()
+    mystart.vars_generate()
+    mystart.payload_table()
