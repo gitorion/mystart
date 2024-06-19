@@ -4,7 +4,7 @@ import subprocess
 from math import trunc
 import mystart_data
 from colorama import Fore
-from prettytable.colortable import ColorTable, Themes
+from prettytable import PrettyTable, MARKDOWN
 
 
 class MyStart:
@@ -487,7 +487,8 @@ class MyStart:
         return
 
     def payload_table(self):
-        table = ColorTable(theme=Themes.OCEAN)
+        table = PrettyTable()
+        table.set_style(MARKDOWN)
         table.border = False
         table.field_names = [self.vars["messages"][0]]
 
