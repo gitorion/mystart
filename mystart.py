@@ -280,21 +280,21 @@ class MyStart:
             self.vars["fan_5"] = "N/A"
             self.vars["fan_6"] = "N/A"
 
-        trans_kick_status = subprocess.getoutput(
+        transkick_status = subprocess.getoutput(
             [
-                "systemctl status trans-kick.service | grep Active | awk '{ print $2, $3 }'"
+                "systemctl status transkick.service | grep Active | awk '{ print $2, $3 }'"
             ]
         )
 
-        if trans_kick_status == "active (running)":
-            self.vars["trans_kick_status"] = (
-                f"{trans_kick_status} {mystart_data.thumb_up}"
+        if transkick_status == "active (running)":
+            self.vars["transkick_status"] = (
+                f"{transkick_status} {mystart_data.thumb_up}"
             )
-        elif trans_kick_status == "Unit trans-kick.service could not be found.":
-            self.vars["trans_kick_status"] = "N/A"
+        elif transkick_status == "Unit transkick.service could not be found.":
+            self.vars["transkick_status"] = "N/A"
         else:
-            self.vars["trans_kick_status"] = (
-                f"{trans_kick_status} {mystart_data.stop_emoji}"
+            self.vars["transkick_status"] = (
+                f"{transkick_status} {mystart_data.stop_emoji}"
             )
 
         try:
@@ -303,7 +303,7 @@ class MyStart:
                 capture_output=True,
                 check=True,
                 text=True,
-                timeout=2,
+                timeout=3,
             ).stdout.strip("\n")
         except:
             self.vars["nord_addr"] = "N/A"
@@ -313,12 +313,12 @@ class MyStart:
                 capture_output=True,
                 check=True,
                 text=True,
-                timeout=2,
+                timeout=3,
             ).stdout.strip("\n")
         except:
             self.vars["trans_addr"] = "N/A"
 
-        if self.vars["trans_kick_status"] == "N/A":
+        if self.vars["transkick_status"] == "N/A":
             self.vars["vpn_check"] = "N/A"
 
         elif (
@@ -480,8 +480,8 @@ class MyStart:
             ) % (self.vars.get("vpn_check"))
             self.vars["messages"].insert(28, msg24)
             msg25 = (
-                f"{Fore.GREEN}[*]{Fore.RESET} Trans-kick status\t\t:{Fore.MAGENTA} %s"
-            ) % (self.vars.get("trans_kick_status"))
+                f"{Fore.GREEN}[*]{Fore.RESET} Transkick status\t\t:{Fore.MAGENTA} %s"
+            ) % (self.vars.get("transkick_status"))
             self.vars["messages"].insert(29, msg25)
             self.vars["messages"].insert(30, line_border)
         return
