@@ -238,7 +238,7 @@ class MyStart:
             self.vars["disk_pool_size"] = "N/A"
             self.vars["disk_pool_used"] = "N/A"
 
-        if self.vars["user"] == "root" and self.vars["host"] == "titan":
+        if self.vars["user"] == "root" and self.vars["host"] == "saturn":
             try:
                 subprocess.run(
                     ["liquidctl", "status"],
@@ -447,7 +447,7 @@ class MyStart:
         ) % (self.vars.get("active_sessions"))
         self.vars["messages"].insert(15, msg13)
 
-        if self.vars["user"] == "root" and self.vars["host"] == "titan":
+        if self.vars["user"] == "root" and self.vars["host"] == "saturn":
             msg16 = (
                 f"{Fore.GREEN}[*]{Fore.RESET} Fans 1 & 2\t\t\t:{Fore.MAGENTA} %s/rpm & %s/rpm"
             ) % (self.vars.get("fan_1"), self.vars.get("fan_2"))
