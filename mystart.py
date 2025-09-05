@@ -364,8 +364,8 @@ class MyStart:
         self.vars["messages"].insert(0, line_border)
         self.vars["messages"].insert(2, line_border)
         msg2 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} System details\t\t:{Fore.MAGENTA} %s | %s |"
-        ) % (self.vars.get("uname"), self.vars.get("distro"))
+            f"{Fore.GREEN}[*]{Fore.RESET} System details\t\t:{Fore.GREEN} %s {Fore.RESET}| {Fore.MAGENTA}%s {Fore.RESET}"
+        ) % self.vars.get("distro"), (self.vars.get("uname"))
         self.vars["messages"].insert(4, msg2)
         msg3 = (
             f"{Fore.GREEN}[*]{Fore.RESET} System uptime\t\t:{Fore.MAGENTA} %s days %s hours %s minutes %s seconds"
@@ -425,7 +425,7 @@ class MyStart:
         self.vars["messages"].insert(23, msg21)
         self.vars["messages"].insert(24, line_border)
         welcome = (
-            f"{Fore.WHITE}User: {Fore.GREEN}%s{Fore.WHITE} Host: {Fore.GREEN}%s %s{Fore.WHITE}"
+            f"{Fore.RESET}User: {Fore.GREEN}%s{Fore.RESET} Host: {Fore.GREEN}%s %s{Fore.RESET}"
         ) % (self.vars.get("user"), self.vars.get("host"), self.vars.get("host_task"))
 
         self.vars["messages"].insert(1, welcome)
