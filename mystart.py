@@ -354,6 +354,10 @@ class MyStart:
                 self.vars["users"] += 1
                 count_list.append(user)
 
+        self.vars["host_task"] = ""
+        self.vars["host_task"] = mystart_data.host_dict.get(self.vars.get("host"))
+
+
         # Messages for PrettyTable
 
         line_border = f"{Fore.MAGENTA}======================================================================={Fore.RESET}"
@@ -421,8 +425,8 @@ class MyStart:
         self.vars["messages"].insert(23, msg21)
         self.vars["messages"].insert(24, line_border)
         welcome = (
-            f"{Fore.WHITE}Hello %s and welcome to %s {mystart_data.grinning_face}"
-        ) % (self.vars.get("user"), self.vars.get("host"))
+            f"{Fore.WHITE}User: %s Host: %s " - "%s"
+        ) % (self.vars.get("user"), self.vars.get("host"), self.vars.get("host_task"))
 
         self.vars["messages"].insert(1, welcome)
         msg1 = (f"{Fore.GREEN}[*]{Fore.RESET} Login details\t\t:{Fore.MAGENTA} %s") % (

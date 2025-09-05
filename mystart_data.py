@@ -22,3 +22,13 @@ coin_emoji = "\U0001FA99"
 which_emoji = "\U0001F937"
 stop_emoji = "\U0001F6D1"
 point_right = "\U0001F449"
+
+host_dict = {
+    "titan": "VM - Dockerised Plex Media Server",
+    "hyperion": "LXC - Reverse Proxy by Caddy",
+    "dione": "LXC - Uptime monitoring by Uptime Kuma",
+    "mimas": "LXC - Metrics and Logging by Grafana/Prometheus",
+    "backup": "LXC - File backup",
+    "dad": "VM - Dad's Dockerised Plex Media Server and SMB share"
+}
+
