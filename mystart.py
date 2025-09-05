@@ -5,7 +5,6 @@ from math import trunc
 import mystart_data
 import shutil
 from colorama import Fore
-from prettytable import PrettyTable, TableStyle
 
 
 class MyStart:
@@ -500,10 +499,20 @@ class MyStart:
         return
 
     def payload_table(self):
-        table = PrettyTable()
-        table.set_style(TableStyle.DEFAULT)
-        table.border = False
-        table.field_names = [self.vars["messages"][0]]
+        try:
+            from prettytable import PrettyTable, TableStyle
+
+            table = PrettyTable()
+            table.set_style(TableStyle.DEFAULT)
+            table.border = False
+            table.field_names = [self.vars["messages"][0]]
+        except (ImportError, AttributeError):
+            from prettytable import PrettyTable, MARKDOWN
+
+            table = PrettyTable()
+            table.set_style(MARKDOWN)
+            table.border = False
+            table.field_names = [self.vars["messages"][0]]
 
         for i in self.vars["messages"][1:]:
             table.add_row([i])
