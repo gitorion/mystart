@@ -3,6 +3,7 @@
 import subprocess
 from math import trunc
 import mystart_data
+import shutil
 from colorama import Fore
 from prettytable import PrettyTable, MARKDOWN
 
@@ -13,6 +14,7 @@ class MyStart:
         self.vars["messages"] = []
 
     def vars_generate(self):
+
         self.vars["uname"] = subprocess.getoutput(
             ["cat /etc/os-release | grep \"PRETTY\" | cut -d'=' -f2-"]
         )
@@ -329,11 +331,19 @@ class MyStart:
         else:
             self.vars["vpn_check"] = f"Unprotected {mystart_data.stop_emoji}"
 
-        self.vars["thislog"] = subprocess.getoutput(
-            [
-                'lastlog -u $USER | tail -n 1 | awk \'{print $4 " " $5 " " $6 " " $7 " from " $3}\''
-            ]
-        )
+        self.last_log = shutil.which("lastlog") is not None
+        if self.last_log:
+            self.vars["thislog"] = subprocess.getoutput(
+                [
+                    'lastlog -u $USER | tail -n 1 | awk \'{print $4 " " $5 " " $6 " " $7 " from " $3}\''
+                ]
+            )
+        else:
+            self.vars["thislog"] = subprocess.getoutput(
+                [
+                    'lastlog2 -u $USER | tail -n 1 | awk \'{print $4 " " $5 " " $6 " " $7 " from " $3}\''
+                ]
+            )
 
         self.vars["psu"] = subprocess.getoutput(["ps -aux | grep -i $USER | wc -l"])
 
