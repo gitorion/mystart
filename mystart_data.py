@@ -29,6 +29,8 @@ host_dict = {
     "dione": "LXC - Uptime monitoring by Uptime Kuma",
     "mimas": "LXC - Metrics and Logging by Grafana/Prometheus",
     "backup": "LXC - File backup",
-    "dad": "VM - Dad's Dockerised Plex Media Server and SMB share"
+    "dad": "VM - Dad's Dockerised Plex Media Server and SMB share",
+    "saturn": "Local Proxmox Server",
+    "neptune": "Proxmox Server at Dad's"
 }
 
