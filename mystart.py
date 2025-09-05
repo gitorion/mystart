@@ -501,7 +501,7 @@ class MyStart:
 
     def payload_table(self):
         table = PrettyTable()
-        table.set_style(TableStyle.RANDOM)
+        table.set_style(TableStyle.DEFAULT)
         table.border = False
         table.field_names = [self.vars["messages"][0]]
 
