@@ -1,4 +1,4 @@
-#!/opt/my_packages/mystart-venv/bin/python3
+#!/usr/bin/env python3
 
 import subprocess
 from math import trunc
