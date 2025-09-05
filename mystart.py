@@ -364,7 +364,7 @@ class MyStart:
         self.vars["messages"].insert(2, line_border)
         msg2 = (
             f"{Fore.GREEN}[*]{Fore.RESET} System details\t\t:{Fore.GREEN} %s {Fore.RESET}|{Fore.MAGENTA} %s {Fore.RESET}"
-        ) % self.vars.get("distro"), (self.vars.get("uname"))
+        ) % (self.vars.get("distro"), (self.vars.get("uname")))
         self.vars["messages"].insert(4, msg2)
         msg3 = (
             f"{Fore.GREEN}[*]{Fore.RESET} System uptime\t\t:{Fore.MAGENTA} %s days %s hours %s minutes %s seconds"
