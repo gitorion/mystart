@@ -425,7 +425,7 @@ class MyStart:
         self.vars["messages"].insert(23, msg21)
         self.vars["messages"].insert(24, line_border)
         welcome = (
-            f"{Fore.WHITE}User: %s Host: %s " - "%s"
+            f"{Fore.WHITE}User: %s Host: %s\t%s"
         ) % (self.vars.get("user"), self.vars.get("host"), self.vars.get("host_task"))
 
         self.vars["messages"].insert(1, welcome)
