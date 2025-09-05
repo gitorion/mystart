@@ -5,7 +5,7 @@ from math import trunc
 import mystart_data
 import shutil
 from colorama import Fore
-from prettytable import PrettyTable, MARKDOWN
+from prettytable import PrettyTable, TableStyle
 
 
 class MyStart:
@@ -501,7 +501,7 @@ class MyStart:
 
     def payload_table(self):
         table = PrettyTable()
-        table.set_style(MARKDOWN)
+        table.set_style(TableStyle)
         table.border = False
         table.field_names = [self.vars["messages"][0]]
 
