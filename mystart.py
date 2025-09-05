@@ -357,14 +357,13 @@ class MyStart:
         self.vars["host_task"] = ""
         self.vars["host_task"] = mystart_data.host_dict.get(self.vars.get("host"))
 
-
         # Messages for PrettyTable
 
         line_border = f"{Fore.MAGENTA}======================================================================={Fore.RESET}"
         self.vars["messages"].insert(0, line_border)
         self.vars["messages"].insert(2, line_border)
         msg2 = (
-            f"{Fore.GREEN}[*]{Fore.RESET} System details\t\t:{Fore.GREEN} %s {Fore.RESET}| {Fore.MAGENTA}%s {Fore.RESET}"
+            f"{Fore.GREEN}[*]{Fore.RESET} System details\t\t:{Fore.GREEN} %s {Fore.RESET}|{Fore.MAGENTA} %s {Fore.RESET}"
         ) % self.vars.get("distro"), (self.vars.get("uname"))
         self.vars["messages"].insert(4, msg2)
         msg3 = (
