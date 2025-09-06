@@ -433,7 +433,7 @@ class MyStart:
         self.vars["messages"].insert(23, msg21)
         self.vars["messages"].insert(24, line_border)
         welcome = (
-            f"{Fore.RESET}User: {Fore.GREEN}%s{Fore.RESET} Host: {Fore.GREEN}%s %s{Fore.RESET}"
+            f"{Fore.RESET}User: {Fore.GREEN}%s{Fore.RESET}\tHost: {Fore.GREEN}%s{Fore.RESET}:{Fore.GREEN} %s{Fore.RESET}"
         ) % (self.vars.get("user"), self.vars.get("host"), self.vars.get("host_task"))
 
         self.vars["messages"].insert(1, welcome)
