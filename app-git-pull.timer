@@ -3,7 +3,7 @@ Description=Schedule mystart git pulls
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=5min
+OnUnitActiveSec=240min
 AccuracySec=30s
 Persistent=true
 
