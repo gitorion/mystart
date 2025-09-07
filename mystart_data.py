@@ -31,6 +31,5 @@ host_dict = {
     "backup": "LXC - File backup",
     "dad": "VM - Dad's Dockerised Plex Media Server and SMB share",
     "saturn": "Local Proxmox Server",
-    "neptune": "Proxmox Server at Dad's"
+    "neptune": "Remote Proxmox Server"
 }
-
