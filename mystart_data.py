@@ -22,6 +22,7 @@ coin_emoji = "\U0001FA99"
 which_emoji = "\U0001F937"
 stop_emoji = "\U0001F6D1"
 point_right = "\U0001F449"
+cross_mark = "\u274C"
 
 host_dict = {
     "titan": "VM - Dockerised Plex Media and Transmission Server",
