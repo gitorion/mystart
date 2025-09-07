@@ -24,12 +24,12 @@ stop_emoji = "\U0001F6D1"
 point_right = "\U0001F449"
 
 host_dict = {
-    "titan": "VM - Dockerised Plex Media Server",
+    "titan": "VM - Dockerised Plex Media and Transmission Server",
     "hyperion": "LXC - Reverse Proxy by Caddy",
     "dione": "LXC - Uptime monitoring by Uptime Kuma",
     "mimas": "LXC - Metrics and Logging by Grafana/Prometheus",
     "backup": "LXC - File backup",
-    "dad": "VM - Dad's Dockerised Plex Media Server and SMB share",
+    "dad": "VM - Dockerised Plex Media Server and SMB share",
     "saturn": "Local Proxmox Server",
     "neptune": "Remote Proxmox Server"
 }
