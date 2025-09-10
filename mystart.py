@@ -36,7 +36,7 @@ class MyStart:
 
         checkip4 = subprocess.getoutput(["ip route get 8.8.8.8 2>/dev/null"])
         if not checkip4:
-            self.vars["ipv4"] = {mystart_data.cross_mark}
+            self.vars["ipv4"] = mystart_data.cross_mark
         else:
             self.vars["ipv4"] = subprocess.getoutput(
                 ["ip route get 8.8.8.8 | grep src | awk '{print $7}'"]
@@ -46,7 +46,7 @@ class MyStart:
             ["ip route get 2001:4860:4860::8888 2>/dev/null"]
         )
         if not checkip6:
-            self.vars["ipv6"] = {mystart_data.cross_mark}
+            self.vars["ipv6"] = mystart_data.cross_mark
         else:
             self.vars["ipv6"] = subprocess.getoutput(
                 ["ip route get 2001:4860:4860::8888 | grep src | awk '{print $11}'"]
@@ -227,17 +227,17 @@ class MyStart:
                     )
 
             if not disk_total:
-                self.vars["disk_pool_size"] = {mystart_data.cross_mark}
+                self.vars["disk_pool_size"] = mystart_data.cross_mark
             else:
                 self.vars["disk_pool_size"] = f"{round(disk_total, 1)}TB"
 
             if not disk_used:
-                self.vars["disk_pool_used"] = {mystart_data.cross_mark}
+                self.vars["disk_pool_used"] = mystart_data.cross_mark
             else:
                 self.vars["disk_pool_used"] = f"{round(disk_used, 1)}TB"
         except:
-            self.vars["disk_pool_size"] = {mystart_data.cross_mark}
-            self.vars["disk_pool_used"] = {mystart_data.cross_mark}
+            self.vars["disk_pool_size"] = mystart_data.cross_mark
+            self.vars["disk_pool_used"] = mystart_data.cross_mark
 
         if self.vars["user"] == "root" and self.vars["host"] == "saturn":
             try:
@@ -267,19 +267,19 @@ class MyStart:
                     ["liquidctl status | grep \"Fan 6\" | awk '{print $5}'"]
                 )
             except:
-                self.vars["fan_1"] = {mystart_data.cross_mark}
-                self.vars["fan_2"] = {mystart_data.cross_mark}
-                self.vars["fan_3"] = {mystart_data.cross_mark}
-                self.vars["fan_4"] = {mystart_data.cross_mark}
-                self.vars["fan_5"] = {mystart_data.cross_mark}
-                self.vars["fan_6"] = {mystart_data.cross_mark}
+                self.vars["fan_1"] = mystart_data.cross_mark
+                self.vars["fan_2"] = mystart_data.cross_mark
+                self.vars["fan_3"] = mystart_data.cross_mark
+                self.vars["fan_4"] = mystart_data.cross_mark
+                self.vars["fan_5"] = mystart_data.cross_mark
+                self.vars["fan_6"] = mystart_data.cross_mark
         else:
-            self.vars["fan_1"] = {mystart_data.cross_mark}
-            self.vars["fan_2"] = {mystart_data.cross_mark}
-            self.vars["fan_3"] = {mystart_data.cross_mark}
-            self.vars["fan_4"] = {mystart_data.cross_mark}
-            self.vars["fan_5"] = {mystart_data.cross_mark}
-            self.vars["fan_6"] = {mystart_data.cross_mark}
+            self.vars["fan_1"] = mystart_data.cross_mark
+            self.vars["fan_2"] = mystart_data.cross_mark
+            self.vars["fan_3"] = mystart_data.cross_mark
+            self.vars["fan_4"] = mystart_data.cross_mark
+            self.vars["fan_5"] = mystart_data.cross_mark
+            self.vars["fan_6"] = mystart_data.cross_mark
 
         transkick_status = subprocess.getoutput(
             [
@@ -292,7 +292,7 @@ class MyStart:
                 f"{transkick_status} {mystart_data.thumb_up}"
             )
         elif transkick_status == "Unit transkick.service could not be found.":
-            self.vars["transkick_status"] = {mystart_data.cross_mark}
+            self.vars["transkick_status"] = mystart_data.cross_mark
         else:
             self.vars["transkick_status"] = (
                 f"{transkick_status} {mystart_data.stop_emoji}"
@@ -307,7 +307,7 @@ class MyStart:
                 timeout=3,
             ).stdout.strip("\n")
         except:
-            self.vars["nord_addr"] = {mystart_data.cross_mark}
+            self.vars["nord_addr"] = mystart_data.cross_mark
         try:
             self.vars["trans_addr"] = subprocess.run(
                 ["docker", "exec", "transmission", "curl", "ifconfig.io"],
@@ -317,14 +317,15 @@ class MyStart:
                 timeout=3,
             ).stdout.strip("\n")
         except:
-            self.vars["trans_addr"] = {mystart_data.cross_mark}
+            self.vars["trans_addr"] = mystart_data.cross_mark
 
-        if self.vars["transkick_status"] == {mystart_data.cross_mark}:
-            self.vars["vpn_check"] = {mystart_data.cross_mark}
+        if self.vars["transkick_status"] == mystart_data.cross_mark:
+            self.vars["vpn_check"] = mystart_data.cross_mark
 
-        elif self.vars["nord_addr"] == self.vars["trans_addr"] and self.vars[
-            "nord_addr"
-        ] != {mystart_data.cross_mark}:
+        elif (
+            self.vars["nord_addr"] == self.vars["trans_addr"]
+            and self.vars["nord_addr"] != mystart_data.cross_mark
+        ):
             self.vars["vpn_check"] = f"Protected {mystart_data.thumb_up}"
         else:
             self.vars["vpn_check"] = f"Unprotected {mystart_data.stop_emoji}"
