@@ -108,23 +108,24 @@ func (s *SystemInfo) calculateCPUSpeed(ctx context.Context) error {
 
 // calculateCPUUsage calculates current CPU usage percentage on macOS.
 func (s *SystemInfo) calculateCPUUsage(ctx context.Context) error {
-	// Use top command to get CPU usage
-	output, err := execCommand(ctx, "ps -A -o %cpu | awk '{s+=$1} END {print s}'")
+	// Use top command to get CPU usage - parse the CPU usage line
+	// top -l 1 outputs: "CPU usage: x.xx% user, y.yy% sys, z.zz% idle"
+	output, err := execCommand(ctx, "top -l 1 | grep 'CPU usage' | awk '{print $3, $5}' | sed 's/%//g'")
 	if err != nil {
 		return fmt.Errorf("getting cpu usage: %w", err)
 	}
 
-	cpuUsed, err := strconv.ParseFloat(output, 64)
-	if err != nil {
-		return fmt.Errorf("%w: cpu usage", ErrParseFailure)
+	// Parse user and sys percentages
+	var userCPU, sysCPU float64
+	parts := strings.Fields(output)
+	if len(parts) >= 2 {
+		userCPU, _ = strconv.ParseFloat(parts[0], 64)
+		sysCPU, _ = strconv.ParseFloat(parts[1], 64)
 	}
 
-	if s.CPUThreads == 0 {
-		return fmt.Errorf("%w: cpu threads not initialized", ErrInvalidOutput)
-	}
-
-	cpuUsage := cpuUsed / float64(s.CPUThreads)
-	s.CPUUsage = fmt.Sprintf("%.2f %%", cpuUsage)
+	// Total CPU usage is user + sys
+	totalCPU := userCPU + sysCPU
+	s.CPUUsage = fmt.Sprintf("%.2f%%", totalCPU)
 
 	return nil
 }
