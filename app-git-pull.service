@@ -1,9 +1,0 @@
-[Unit]
-Description=Pull latest for mystart
-
-[Service]
-Type=oneshot
-WorkingDirectory=/opt/my_packages/mystart
-ExecStart=/usr/bin/git pull
-User=orion
-Group=orion
