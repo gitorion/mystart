@@ -1,4 +1,4 @@
-module github.com/orion/mystart
+module github.com/gitorion/mystart
 
 go 1.21
 

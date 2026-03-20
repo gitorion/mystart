@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/orion/mystart/internal/collector"
+	"github.com/gitorion/mystart/internal/collector"
 )
 
 // Layout constants (all values are visual character widths).

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/orion/mystart/internal/collector"
-	"github.com/orion/mystart/internal/display"
+	"github.com/gitorion/mystart/internal/collector"
+	"github.com/gitorion/mystart/internal/display"
 )
 
 func main() {

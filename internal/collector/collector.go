@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/orion/mystart/internal/config"
+	"github.com/gitorion/mystart/internal/config"
 )
 
 // Collector orchestrates system information gathering.

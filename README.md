@@ -42,7 +42,7 @@ brew install go
 
 **2. Install mystart:**
 ```bash
-go install github.com/orion/mystart/cmd/mystart@latest
+go install github.com/gitorion/mystart/cmd/mystart@latest
 ```
 
 **3. Add to shell startup** — zsh is the default shell on macOS:
@@ -72,7 +72,7 @@ sudo pacman -S go
 
 **2. Install mystart:**
 ```bash
-go install github.com/orion/mystart/cmd/mystart@latest
+go install github.com/gitorion/mystart/cmd/mystart@latest
 ```
 
 **3. Add to shell startup** — bash is the common default on Linux:
@@ -96,7 +96,7 @@ Open a new terminal and mystart will run automatically.
 To update to the latest version, run the same install command again:
 
 ```bash
-go install github.com/orion/mystart/cmd/mystart@latest
+go install github.com/gitorion/mystart/cmd/mystart@latest
 ```
 
 This overwrites the existing binary automatically.
@@ -108,7 +108,7 @@ This overwrites the existing binary automatically.
 ### Build from source
 
 ```bash
-git clone https://github.com/orion/mystart.git
+git clone https://github.com/gitorion/mystart.git
 cd mystart
 make build
 ./bin/mystart
@@ -117,7 +117,7 @@ make build
 ### Run without installing
 
 ```bash
-git clone https://github.com/orion/mystart.git
+git clone https://github.com/gitorion/mystart.git
 cd mystart
 go run ./cmd/mystart/
 ```
