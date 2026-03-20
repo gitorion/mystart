@@ -91,6 +91,18 @@ Open a new terminal and mystart will run automatically.
 
 ---
 
+## Updating
+
+To update to the latest version, run the same install command again:
+
+```bash
+go install github.com/orion/mystart/cmd/mystart@latest
+```
+
+This overwrites the existing binary automatically.
+
+---
+
 ## Other Installation Options
 
 ### Build from source
