@@ -47,6 +47,7 @@ go install github.com/gitorion/mystart/cmd/mystart@latest
 
 **3. Add to shell startup** — zsh is the default shell on macOS:
 ```bash
+echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.zshrc
 echo 'mystart' >> ~/.zshrc
 ```
 
@@ -77,17 +78,13 @@ go install github.com/gitorion/mystart/cmd/mystart@latest
 
 **3. Add to shell startup** — bash is the common default on Linux:
 ```bash
+echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bashrc
 echo 'mystart' >> ~/.bashrc
 ```
 
 Open a new terminal and mystart will run automatically.
 
 ---
-
-> **`mystart` not found after install?** Go's bin directory may not be in your `$PATH`. Add this to your rc file before the `mystart` line, then open a new terminal:
-> ```bash
-> export PATH="$PATH:$HOME/go/bin"
-> ```
 
 ---
 
