@@ -27,16 +27,73 @@ Progress bars change colour automatically: green below 60 %, yellow 60–80 %, r
 - **Go 1.21+** — [install from golang.org](https://golang.org/dl/)
 - Standard system utilities only — no additional packages needed
 
-## Installation
+---
 
-### Option 1 — Install to PATH with `go install`
+## Quick Start
 
+The fastest way to get `mystart` running automatically every time you open a terminal.
+
+### macOS
+
+**1. Install Go** (if not already installed) — easiest via [Homebrew](https://brew.sh):
 ```bash
-go install github.com/orion/mystart/cmd/mystart@latest
-mystart
+brew install go
 ```
 
-### Option 2 — Build from source
+**2. Install mystart:**
+```bash
+go install github.com/orion/mystart/cmd/mystart@latest
+```
+
+**3. Add to shell startup** — zsh is the default shell on macOS:
+```bash
+echo 'mystart' >> ~/.zshrc
+```
+
+Open a new terminal and mystart will run automatically.
+
+---
+
+### Linux
+
+**1. Install Go** (if not already installed):
+```bash
+# Ubuntu / Debian
+sudo apt install golang-go
+
+# Fedora
+sudo dnf install golang
+
+# Arch
+sudo pacman -S go
+
+# Or download directly from golang.org/dl
+```
+
+**2. Install mystart:**
+```bash
+go install github.com/orion/mystart/cmd/mystart@latest
+```
+
+**3. Add to shell startup** — bash is the common default on Linux:
+```bash
+echo 'mystart' >> ~/.bashrc
+```
+
+Open a new terminal and mystart will run automatically.
+
+---
+
+> **`mystart` not found after install?** Go's bin directory may not be in your `$PATH`. Add this to your rc file before the `mystart` line, then open a new terminal:
+> ```bash
+> export PATH="$PATH:$HOME/go/bin"
+> ```
+
+---
+
+## Other Installation Options
+
+### Build from source
 
 ```bash
 git clone https://github.com/orion/mystart.git
@@ -45,7 +102,7 @@ make build
 ./bin/mystart
 ```
 
-### Option 3 — Run without installing
+### Run without installing
 
 ```bash
 git clone https://github.com/orion/mystart.git
