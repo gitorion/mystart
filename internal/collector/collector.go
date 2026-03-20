@@ -2,42 +2,57 @@ package collector
 
 import (
 	"context"
-	"fmt"
+	"os/exec"
+	"strings"
+	"sync"
+
+	"github.com/orion/mystart/internal/config"
 )
 
-// GatherAll collects all system information.
-// This is the main entry point for gathering system data.
-func (s *SystemInfo) GatherAll(ctx context.Context) error {
-	if err := s.GatherBasicInfo(ctx); err != nil {
-		return fmt.Errorf("gathering basic info: %w", err)
+// Collector orchestrates system information gathering.
+type Collector struct{}
+
+// New returns a new Collector.
+func New() *Collector {
+	return &Collector{}
+}
+
+// GatherAll collects all system metrics. System identification is gathered
+// first; all other categories run concurrently.
+func (c *Collector) GatherAll() (*SystemInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), config.OverallTimeout)
+	defer cancel()
+
+	info := &SystemInfo{}
+
+	// System must complete first; other gatherers may need hostname / user.
+	gatherSystem(ctx, info)
+
+	var wg sync.WaitGroup
+	wg.Add(6)
+	go func() { defer wg.Done(); gatherCPU(ctx, info) }()
+	go func() { defer wg.Done(); gatherMemory(ctx, info) }()
+	go func() { defer wg.Done(); gatherDisk(ctx, info) }()
+	go func() { defer wg.Done(); gatherNetwork(ctx, info) }()
+	go func() { defer wg.Done(); gatherUptime(ctx, info) }()
+	go func() { defer wg.Done(); gatherUsers(ctx, info) }()
+	wg.Wait()
+
+	return info, nil
+}
+
+// execCommand runs a shell command via sh -c and returns trimmed stdout.
+func execCommand(ctx context.Context, cmd string) (string, error) {
+	c := exec.CommandContext(ctx, "sh", "-c", cmd)
+	out, err := c.Output()
+	if err != nil {
+		return "", err
 	}
+	return strings.TrimSpace(string(out)), nil
+}
 
-	if err := s.GatherCPUInfo(ctx); err != nil {
-		return fmt.Errorf("gathering CPU info: %w", err)
-	}
-
-	if err := s.GatherMemoryInfo(ctx); err != nil {
-		return fmt.Errorf("gathering memory info: %w", err)
-	}
-
-	if err := s.GatherDiskInfo(ctx); err != nil {
-		return fmt.Errorf("gathering disk info: %w", err)
-	}
-
-	if err := s.GatherNetworkInfo(ctx); err != nil {
-		return fmt.Errorf("gathering network info: %w", err)
-	}
-
-	if err := s.GatherUserInfo(ctx); err != nil {
-		return fmt.Errorf("gathering user info: %w", err)
-	}
-
-	if err := s.GatherUptimeInfo(ctx); err != nil {
-		return fmt.Errorf("gathering uptime info: %w", err)
-	}
-
-	// Gather optional host-specific information
-	s.GatherHostSpecificInfo(ctx)
-
-	return nil
+// execCommandSafe runs a command and returns "" on any error.
+func execCommandSafe(ctx context.Context, cmd string) string {
+	out, _ := execCommand(ctx, cmd)
+	return out
 }

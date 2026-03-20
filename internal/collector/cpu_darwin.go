@@ -5,138 +5,72 @@ package collector
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
-// GatherCPUInfo collects CPU-related information on macOS.
-func (s *SystemInfo) GatherCPUInfo(ctx context.Context) error {
-	if err := s.gatherCPUCores(ctx); err != nil {
-		return err
+func gatherCPU(ctx context.Context, info *SystemInfo) {
+	// CPU model
+	info.CPUModel = execCommandSafe(ctx, "sysctl -n machdep.cpu.brand_string")
+
+	// Physical cores
+	coresStr := execCommandSafe(ctx, "sysctl -n hw.physicalcpu")
+	if n, err := strconv.Atoi(coresStr); err == nil {
+		info.CPUCores = n
 	}
 
-	if err := s.calculateCPUSpeed(ctx); err != nil {
-		return err
+	// Logical cores (threads)
+	info.CPUThreads = runtime.NumCPU()
+
+	// CPU frequency (Hz → GHz)
+	for _, key := range []string{"hw.cpufrequency", "hw.cpufrequency_max"} {
+		freqStr := execCommandSafe(ctx, "sysctl -n "+key)
+		if freq, err := strconv.ParseFloat(freqStr, 64); err == nil && freq > 0 {
+			info.CPUHz = freq / 1e9
+			break
+		}
 	}
-
-	if err := s.calculateCPUUsage(ctx); err != nil {
-		return err
-	}
-
-	if err := s.gatherLoadAverage(ctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// gatherCPUCores retrieves the number of CPU cores on macOS.
-func (s *SystemInfo) gatherCPUCores(ctx context.Context) error {
-	coresStr, err := execCommand(ctx, "sysctl -n hw.physicalcpu")
-	if err != nil {
-		return fmt.Errorf("getting cpu cores: %w", err)
-	}
-
-	cores, err := strconv.Atoi(coresStr)
-	if err != nil {
-		return fmt.Errorf("%w: cpu cores", ErrParseFailure)
-	}
-
-	s.CPUCores = cores
-	return nil
-}
-
-// calculateCPUSpeed calculates CPU speed on macOS.
-func (s *SystemInfo) calculateCPUSpeed(ctx context.Context) error {
-	// Get logical CPU count
-	s.CPUThreads = runtime.NumCPU()
-
-	// Try to get CPU frequency in Hz
-	freqStr := execCommandSafe(ctx, "sysctl -n hw.cpufrequency")
-	if freqStr != "" {
-		freq, err := strconv.ParseFloat(freqStr, 64)
-		if err == nil {
-			// Convert Hz to GHz
-			s.CPUHz = freq / 1000000000.0
-			return nil
+	// Fallback: parse GHz from brand string (e.g. "Intel … @ 2.60GHz")
+	if info.CPUHz == 0 && strings.Contains(info.CPUModel, "@") {
+		parts := strings.Split(info.CPUModel, "@")
+		ghz := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(parts[1]), "GHz"))
+		if v, err := strconv.ParseFloat(ghz, 64); err == nil {
+			info.CPUHz = v
 		}
 	}
 
-	// Fallback: try to get max frequency for Apple Silicon
-	maxFreqStr := execCommandSafe(ctx, "sysctl -n hw.cpufrequency_max")
-	if maxFreqStr != "" {
-		freq, err := strconv.ParseFloat(maxFreqStr, 64)
-		if err == nil {
-			// Convert Hz to GHz
-			s.CPUHz = freq / 1000000000.0
-			return nil
-		}
-	}
-
-	// Fallback: parse from CPU brand string
-	brandStr := execCommandSafe(ctx, "sysctl -n machdep.cpu.brand_string")
-	if brandStr != "" {
-		// Try to parse frequency from brand string (e.g., "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz")
-		if strings.Contains(brandStr, "GHz") {
-			parts := strings.Split(brandStr, "@")
-			if len(parts) == 2 {
-				ghzPart := strings.TrimSpace(parts[1])
-				ghzPart = strings.TrimSuffix(ghzPart, "GHz")
-				ghzPart = strings.TrimSpace(ghzPart)
-				speed, err := strconv.ParseFloat(ghzPart, 64)
-				if err == nil {
-					s.CPUHz = speed
-					return nil
+	// CPU usage via top (one sample)
+	out := execCommandSafe(ctx, "top -l 1 -n 0 | grep -E '^CPU usage'")
+	if out != "" {
+		// "CPU usage: 12.34% user, 5.67% sys, 82.00% idle"
+		var user, sys float64
+		fields := strings.Fields(out)
+		for i, f := range fields {
+			switch f {
+			case "user,":
+				if i > 0 {
+					pct := strings.TrimSuffix(fields[i-1], "%")
+					user, _ = strconv.ParseFloat(pct, 64)
+				}
+			case "sys,":
+				if i > 0 {
+					pct := strings.TrimSuffix(fields[i-1], "%")
+					sys, _ = strconv.ParseFloat(pct, 64)
 				}
 			}
 		}
-
-		// For Apple Silicon without frequency in brand string, use a reasonable default
-		if strings.Contains(brandStr, "Apple") {
-			// Apple Silicon doesn't expose frequency, use a placeholder
-			s.CPUHz = 0.0
-			return nil
-		}
+		info.CPUUsage = user + sys
 	}
 
-	// If all methods fail, set to 0 (unknown)
-	s.CPUHz = 0.0
-	return nil
-}
-
-// calculateCPUUsage calculates current CPU usage percentage on macOS.
-func (s *SystemInfo) calculateCPUUsage(ctx context.Context) error {
-	// Use top command to get CPU usage - parse the CPU usage line
-	// top -l 1 outputs: "CPU usage: x.xx% user, y.yy% sys, z.zz% idle"
-	output, err := execCommand(ctx, "top -l 1 | grep 'CPU usage' | awk '{print $3, $5}' | sed 's/%//g'")
-	if err != nil {
-		return fmt.Errorf("getting cpu usage: %w", err)
+	// Load average
+	lavg := execCommandSafe(ctx, "sysctl -n vm.loadavg")
+	// Format: "{ 1.23 0.89 0.72 }"
+	lavg = strings.Trim(lavg, "{ }")
+	parts := strings.Fields(lavg)
+	if len(parts) >= 3 {
+		info.LoadAvg1, _ = strconv.ParseFloat(parts[0], 64)
+		info.LoadAvg5, _ = strconv.ParseFloat(parts[1], 64)
+		info.LoadAvg15, _ = strconv.ParseFloat(parts[2], 64)
 	}
-
-	// Parse user and sys percentages
-	var userCPU, sysCPU float64
-	parts := strings.Fields(output)
-	if len(parts) >= 2 {
-		userCPU, _ = strconv.ParseFloat(parts[0], 64)
-		sysCPU, _ = strconv.ParseFloat(parts[1], 64)
-	}
-
-	// Total CPU usage is user + sys
-	totalCPU := userCPU + sysCPU
-	s.CPUUsage = fmt.Sprintf("%.2f%%", totalCPU)
-
-	return nil
-}
-
-// gatherLoadAverage retrieves system load average on macOS.
-func (s *SystemInfo) gatherLoadAverage(ctx context.Context) error {
-	loadAvg, err := execCommand(ctx, "sysctl -n vm.loadavg | awk '{print $2 \" \" $3 \" \" $4}'")
-	if err != nil {
-		return fmt.Errorf("getting load average: %w", err)
-	}
-
-	s.LoadAvg = loadAvg
-	return nil
 }

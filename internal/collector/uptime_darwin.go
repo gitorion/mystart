@@ -5,54 +5,33 @@ package collector
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 )
 
-// GatherUptimeInfo collects system uptime information on macOS.
-func (s *SystemInfo) GatherUptimeInfo(ctx context.Context) error {
-	// Get boot time
-	bootTimeStr, err := execCommand(ctx, "sysctl -n kern.boottime")
-	if err != nil {
-		return fmt.Errorf("getting boot time: %w", err)
+func gatherUptime(ctx context.Context, info *SystemInfo) {
+	// kern.boottime: "{ sec = 1234567890, usec = 123456 } Mon Jan 01 00:00:00 2024"
+	bootStr := execCommandSafe(ctx, "sysctl -n kern.boottime")
+	nowStr := execCommandSafe(ctx, "date +%s")
+
+	var bootSec, nowSec int64
+
+	// Extract seconds from boottime
+	if idx := strings.Index(bootStr, "sec = "); idx >= 0 {
+		rest := bootStr[idx+6:]
+		if end := strings.IndexAny(rest, ",} "); end > 0 {
+			rest = rest[:end]
+		}
+		bootSec, _ = strconv.ParseInt(strings.TrimSpace(rest), 10, 64)
 	}
 
-	// Parse boot time: "{ sec = 1234567890, usec = 0 }" format
-	// Extract seconds since epoch
-	parts := strings.Split(bootTimeStr, ",")
-	if len(parts) < 1 {
-		return fmt.Errorf("%w: boot time format", ErrParseFailure)
+	nowSec, _ = strconv.ParseInt(nowStr, 10, 64)
+
+	if bootSec > 0 && nowSec > bootSec {
+		total := int(nowSec - bootSec)
+		info.UptimeDays = total / 86400
+		info.UptimeHours = (total % 86400) / 3600
+		info.UptimeMinutes = (total % 3600) / 60
+		info.UptimeSeconds = total % 60
 	}
-
-	secPart := strings.TrimSpace(parts[0])
-	secPart = strings.TrimPrefix(secPart, "{ sec = ")
-	secPart = strings.TrimSpace(secPart)
-
-	bootTime, err := strconv.ParseInt(secPart, 10, 64)
-	if err != nil {
-		return fmt.Errorf("%w: boot time", ErrParseFailure)
-	}
-
-	// Get current time
-	currentTimeStr, err := execCommand(ctx, "date +%s")
-	if err != nil {
-		return fmt.Errorf("getting current time: %w", err)
-	}
-
-	currentTime, err := strconv.ParseInt(currentTimeStr, 10, 64)
-	if err != nil {
-		return fmt.Errorf("%w: current time", ErrParseFailure)
-	}
-
-	// Calculate uptime in seconds
-	uptime := int(currentTime - bootTime)
-
-	// Calculate time components
-	s.UptimeDays = uptime / 60 / 60 / 24
-	s.UptimeHours = (uptime / 60 / 60) % 24
-	s.UptimeMinutes = (uptime / 60) % 60
-	s.UptimeSeconds = uptime % 60
-
-	return nil
 }

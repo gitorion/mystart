@@ -2,152 +2,333 @@ package display
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/orion/mystart/internal/collector"
-	"github.com/orion/mystart/internal/config"
 )
 
-// Formatter handles the formatting and display of system information.
-type Formatter struct {
-	green   func(a ...interface{}) string
-	magenta func(a ...interface{}) string
-	cyan    func(a ...interface{}) string
-	yellow  func(a ...interface{}) string
-	blue    func(a ...interface{}) string
-	red     func(a ...interface{}) string
-	reset   func(a ...interface{}) string
-}
+// Layout constants (all values are visual character widths).
+const (
+	boxWidth   = 76
+	innerWidth = boxWidth - 2 // 74, between the vertical borders
+	labelWidth = 18
+	barWidth   = 20
+	// valueWidth = innerWidth - 4 (indent) - labelWidth - 2 (sep) - 0 (no trailing space needed before │)
+	// 74 - 4 - 18 - 2 = 50
+	valueWidth = 50
+)
 
-// NewFormatter creates a new display formatter.
-func NewFormatter() *Formatter {
-	return &Formatter{
-		green:   color.New(color.FgGreen).SprintFunc(),
-		magenta: color.New(color.FgMagenta).SprintFunc(),
-		cyan:    color.New(color.FgCyan).SprintFunc(),
-		yellow:  color.New(color.FgYellow).SprintFunc(),
-		blue:    color.New(color.FgBlue).SprintFunc(),
-		red:     color.New(color.FgRed).SprintFunc(),
-		reset:   color.New(color.Reset).SprintFunc(),
+// Colour palette
+var (
+	cBorder   = color.New(color.FgCyan)
+	cSection  = color.New(color.FgYellow, color.Bold)
+	cLabel    = color.New(color.FgMagenta)
+	cValue    = color.New(color.FgHiWhite)
+	cDim      = color.New(color.FgHiBlack)
+	cTitle    = color.New(color.FgCyan, color.Bold)
+	cSubtitle = color.New(color.FgHiWhite)
+	cGreen    = color.New(color.FgGreen)
+	cYellow   = color.New(color.FgYellow)
+	cRed      = color.New(color.FgRed)
+)
+
+// ─────────────────────────────────────────────────────────────
+// Public entry point
+// ─────────────────────────────────────────────────────────────
+
+// Render prints the full system status dashboard.
+func Render(info *collector.SystemInfo) {
+	p := fmt.Println
+
+	p(topBorder())
+	p(titleLine("◈  SYSTEM STATUS  ◈"))
+	p(subtitleLine(info.Hostname + "  ·  " + info.User))
+	p(divider())
+
+	// ── SYSTEM ──────────────────────────────────────────────
+	p(sectionHeader("SYSTEM"))
+	p(row("Hostname", info.Hostname))
+	p(row("User", info.User))
+	p(row("OS", info.OS))
+	p(row("Kernel", info.Kernel))
+	if info.Shell != "" {
+		p(row("Shell", info.Shell))
 	}
-}
+	p(row("Uptime", formatUptime(info)))
+	p(divider())
 
-// Display prints the formatted system information.
-func (f *Formatter) Display(info *collector.SystemInfo) {
-	messages := f.buildMessages(info)
-
-	for _, msg := range messages {
-		fmt.Println(msg)
+	// ── PROCESSOR ───────────────────────────────────────────
+	p(sectionHeader("PROCESSOR"))
+	if info.CPUModel != "" {
+		p(row("Model", info.CPUModel))
 	}
-}
+	p(row("Cores / Threads", formatCores(info)))
+	p(barRowPct("Usage", info.CPUUsage))
+	p(row("Load Average", formatLoad(info)))
+	p(divider())
 
-// buildMessages constructs the display messages from SystemInfo.
-func (f *Formatter) buildMessages(info *collector.SystemInfo) []string {
-	lineBorder := f.magenta("=======================================================================")
+	// ── MEMORY ──────────────────────────────────────────────
+	p(sectionHeader("MEMORY"))
+	p(barRowGB("RAM", info.MemUsedGB, info.MemTotalGB))
+	if info.SwapTotalGB > 0 {
+		p(barRowGB("Swap", info.SwapUsedGB, info.SwapTotalGB))
+	}
+	p(divider())
 
-	messages := make([]string, 0, 35)
+	// ── STORAGE ─────────────────────────────────────────────
+	p(sectionHeader("STORAGE"))
+	for _, m := range info.DiskMounts {
+		p(barRowDisk(m))
+	}
+	p(divider())
 
-	// Header
-	messages = append(messages, lineBorder)
-	messages = append(messages, fmt.Sprintf("%sUser: %s%s\tHost: %s%s %s %s%s",
-		f.reset(), f.green(info.User), f.reset(), f.green(info.Host),
-		config.PointRight, info.HostTask, f.reset(), f.reset()))
-	messages = append(messages, lineBorder)
-
-	// Login information
-	messages = append(messages, f.formatLineWithColor("Login details", info.ThisLog, f.cyan))
-
-	// System information
-	systemDetails := fmt.Sprintf("%s | %s", info.Distro, info.Uname)
-	messages = append(messages, f.formatLineWithColor("System details", systemDetails, f.yellow))
-
-	uptimeStr := fmt.Sprintf("%d days %d hours %d minutes %d seconds",
-		info.UptimeDays, info.UptimeHours, info.UptimeMinutes, info.UptimeSeconds)
-	messages = append(messages, f.formatLineWithColor("System uptime", uptimeStr, f.cyan))
-	messages = append(messages, f.formatLineWithColor("System load", info.LoadAvg, f.yellow))
-
-	// CPU information
-	var cpuInfoValue string
-	if info.CPUHz > 0 {
-		cpuInfoValue = fmt.Sprintf("%s in use of %d cores/%d threads at %.2fGHz",
-			info.CPUUsage, info.CPUCores, info.CPUThreads, info.CPUHz)
+	// ── NETWORK ─────────────────────────────────────────────
+	p(sectionHeader("NETWORK"))
+	if info.IPv4 != "" {
+		p(row("IPv4", info.IPv4))
 	} else {
-		cpuInfoValue = fmt.Sprintf("%s in use of %d cores/%d threads",
-			info.CPUUsage, info.CPUCores, info.CPUThreads)
+		p(row("IPv4", "unavailable"))
 	}
-	messages = append(messages, f.formatLineWithColor("CPU info", cpuInfoValue, f.magenta))
-
-	// Memory information
-	messages = append(messages, f.formatLineWithColor("Memory in use",
-		fmt.Sprintf("%s of %s", info.MemUsed, info.MemTotal), f.cyan))
-	messages = append(messages, f.formatLineWithColor("Swap memory in use",
-		fmt.Sprintf("%s of %s", info.SwapUsed, info.SwapTotal), f.cyan))
-
-	// Disk information
-	messages = append(messages, f.formatLineWithColor("Root disk usage",
-		fmt.Sprintf("%s of %s", info.DiskUse, info.DiskSize), f.yellow))
-	messages = append(messages, f.formatLineWithColor("Disk pool size", info.DiskPoolSize, f.yellow))
-	messages = append(messages, f.formatLineWithColor("Disk pool used", info.DiskPoolUsed, f.yellow))
-
-	// Process and user information
-	processInfo := fmt.Sprintf("%s running %s, total of %s running on %s",
-		info.User, info.ProcessesUser, info.ProcessesAll, info.Host)
-	messages = append(messages, f.formatLineWithColor("System processes", processInfo, f.blue))
-
-	userInfo := fmt.Sprintf("%d user(s) currently logged in", info.Users)
-	messages = append(messages, f.formatLineWithColor("Users", userInfo, f.blue))
-
-	sessionInfo := fmt.Sprintf("%s current active session(s)", info.ActiveSessions)
-	messages = append(messages, f.formatLineWithColor("Sessions", sessionInfo, f.blue))
-
-	messages = append(messages, f.formatLineWithColor("Last system login", info.LastLog, f.cyan))
-
-	// Fan information (for specific hosts)
-	if info.User == "root" && info.Host == "saturn" {
-		messages = append(messages, lineBorder)
-		messages = append(messages, f.formatLineWithColor("Fans 1 & 2",
-			fmt.Sprintf("%s/rpm & %s/rpm", info.Fan1, info.Fan2), f.blue))
-		messages = append(messages, f.formatLineWithColor("Fans 3 & 4",
-			fmt.Sprintf("%s/rpm & %s/rpm", info.Fan3, info.Fan4), f.blue))
-		messages = append(messages, f.formatLineWithColor("Fans 5 & 6",
-			fmt.Sprintf("%s/rpm & %s/rpm", info.Fan5, info.Fan6), f.blue))
+	if info.IPv6 != "" {
+		p(row("IPv6", info.IPv6))
+	} else {
+		p(row("IPv6", "unavailable"))
 	}
+	p(divider())
 
-	// Network information
-	messages = append(messages, lineBorder)
-	messages = append(messages, f.formatLineWithColor("IPv4 address", info.IPv4, f.cyan))
-	messages = append(messages, f.formatLineWithColor("IPv6 address", info.IPv6, f.cyan))
-	messages = append(messages, lineBorder)
-
-	// VPN information (for specific hosts)
-	if info.User == "orion" && info.Host == "titan" {
-		messages = append(messages, f.formatLineWithColor("VPN address", info.NordAddr, f.yellow))
-		messages = append(messages, f.formatLineWithColor("Transmission address", info.TransAddr, f.yellow))
-		messages = append(messages, lineBorder)
-		messages = append(messages, f.formatLineWithColor("Transmission status", info.VPNCheck, f.green))
-		messages = append(messages, f.formatLineWithColor("Transkick status", info.TranskickStatus, f.green))
-		messages = append(messages, lineBorder)
+	// ── SESSIONS ────────────────────────────────────────────
+	p(sectionHeader("SESSIONS"))
+	p(row("Users", formatUsers(info)))
+	p(row("Processes", formatProcesses(info)))
+	if info.LastLogin != "" {
+		p(row("Last Login", info.LastLogin))
 	}
-
-	return messages
+	p(bottomBorder())
 }
 
-// formatLine formats a single information line with consistent spacing.
-func (f *Formatter) formatLine(label, value string) string {
-	return f.formatLineWithColor(label, value, f.magenta)
+// ─────────────────────────────────────────────────────────────
+// Row builders
+// ─────────────────────────────────────────────────────────────
+
+// row renders a plain label → value line.
+func row(label, value string) string {
+	vr := []rune(value)
+	if len(vr) > valueWidth {
+		vr = vr[:valueWidth-3]
+		value = string(vr) + "..."
+	}
+	padding := valueWidth - len([]rune(value))
+	return fmt.Sprintf("%s    %s  %s%s%s",
+		cBorder.Sprint("│"),
+		cLabel.Sprintf("%-18s", label),
+		cValue.Sprint(value),
+		strings.Repeat(" ", padding),
+		cBorder.Sprint("│"),
+	)
 }
 
-// formatLineWithColor formats a single information line with consistent spacing and custom color.
-func (f *Formatter) formatLineWithColor(label, value string, colorFunc func(a ...interface{}) string) string {
-	const labelWidth = 25 // Fixed width for label column
-	padding := labelWidth - len(label)
-	if padding < 1 {
-		padding = 1
+// barRowPct renders a progress bar for a plain percentage value (e.g. CPU usage).
+func barRowPct(label string, pct float64) string {
+	bar := makeBar(pct)
+	text := fmt.Sprintf("  %.1f%%", pct)
+	padding := valueWidth - barWidth - len(text)
+	if padding < 0 {
+		padding = 0
 	}
-	spaces := ""
-	for i := 0; i < padding; i++ {
-		spaces += " "
+	return fmt.Sprintf("%s    %s  %s%s%s%s",
+		cBorder.Sprint("│"),
+		cLabel.Sprintf("%-18s", label),
+		bar,
+		cValue.Sprint(text),
+		strings.Repeat(" ", padding),
+		cBorder.Sprint("│"),
+	)
+}
+
+// barRowGB renders a progress bar for a used/total value in GB.
+func barRowGB(label string, used, total float64) string {
+	pct := 0.0
+	if total > 0 {
+		pct = used / total * 100
 	}
-	return fmt.Sprintf("%s[*]%s %s%s: %s%s",
-		f.green(""), f.reset(), label, spaces, colorFunc(""), value)
+	bar := makeBar(pct)
+	text := fmt.Sprintf("  %.1f / %.1f GB  (%.1f%%)", used, total, pct)
+	padding := valueWidth - barWidth - len(text)
+	if padding < 0 {
+		padding = 0
+	}
+	return fmt.Sprintf("%s    %s  %s%s%s%s",
+		cBorder.Sprint("│"),
+		cLabel.Sprintf("%-18s", label),
+		bar,
+		cValue.Sprint(text),
+		strings.Repeat(" ", padding),
+		cBorder.Sprint("│"),
+	)
+}
+
+// barRowDisk renders a progress bar for a DiskMount, auto-selecting GB or TB.
+func barRowDisk(m collector.DiskMount) string {
+	bar := makeBar(m.UsedPercent)
+	var text string
+	if m.TotalGB >= 1000 {
+		text = fmt.Sprintf("  %.1f / %.1f TB  (%.1f%%)",
+			m.UsedGB/1024, m.TotalGB/1024, m.UsedPercent)
+	} else {
+		text = fmt.Sprintf("  %.1f / %.1f GB  (%.1f%%)",
+			m.UsedGB, m.TotalGB, m.UsedPercent)
+	}
+
+	// Shorten well-known long paths, then truncate if still too long
+	label := m.Path
+	switch label {
+	case "/System/Volumes/Data":
+		label = "/data (APFS)"
+	}
+	lr := []rune(label)
+	if len(lr) > labelWidth {
+		label = "…" + string(lr[len(lr)-(labelWidth-1):])
+	}
+
+	padding := valueWidth - barWidth - len(text)
+	if padding < 0 {
+		padding = 0
+	}
+	return fmt.Sprintf("%s    %s  %s%s%s%s",
+		cBorder.Sprint("│"),
+		cLabel.Sprintf("%-18s", label),
+		bar,
+		cValue.Sprint(text),
+		strings.Repeat(" ", padding),
+		cBorder.Sprint("│"),
+	)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Structural elements
+// ─────────────────────────────────────────────────────────────
+
+func topBorder() string {
+	return cBorder.Sprint("╭" + strings.Repeat("─", innerWidth) + "╮")
+}
+
+func bottomBorder() string {
+	return cBorder.Sprint("╰" + strings.Repeat("─", innerWidth) + "╯")
+}
+
+func divider() string {
+	return cBorder.Sprint("╠" + strings.Repeat("═", innerWidth) + "╣")
+}
+
+func titleLine(text string) string {
+	return centeredLine(text, cTitle)
+}
+
+func subtitleLine(text string) string {
+	return centeredLine(text, cSubtitle)
+}
+
+func centeredLine(text string, c *color.Color) string {
+	textLen := len([]rune(text))
+	total := innerWidth - textLen
+	left := total / 2
+	right := total - left
+	if left < 0 {
+		left, right = 0, 0
+	}
+	return fmt.Sprintf("%s%s%s%s%s",
+		cBorder.Sprint("│"),
+		strings.Repeat(" ", left),
+		c.Sprint(text),
+		strings.Repeat(" ", right),
+		cBorder.Sprint("│"),
+	)
+}
+
+func sectionHeader(title string) string {
+	content := "◆ " + title
+	padding := innerWidth - 2 - len([]rune(content)) // 2 = leading spaces "  "
+	if padding < 0 {
+		padding = 0
+	}
+	return fmt.Sprintf("%s  %s%s%s",
+		cBorder.Sprint("│"),
+		cSection.Sprint(content),
+		strings.Repeat(" ", padding),
+		cBorder.Sprint("│"),
+	)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Progress bar
+// ─────────────────────────────────────────────────────────────
+
+func makeBar(pct float64) string {
+	filled := int(pct / 100.0 * float64(barWidth))
+	if filled > barWidth {
+		filled = barWidth
+	}
+	if filled < 0 {
+		filled = 0
+	}
+	var fill *color.Color
+	switch {
+	case pct >= 80:
+		fill = cRed
+	case pct >= 60:
+		fill = cYellow
+	default:
+		fill = cGreen
+	}
+	return fill.Sprint(strings.Repeat("█", filled)) +
+		cDim.Sprint(strings.Repeat("░", barWidth-filled))
+}
+
+// ─────────────────────────────────────────────────────────────
+// Value formatters
+// ─────────────────────────────────────────────────────────────
+
+func formatUptime(info *collector.SystemInfo) string {
+	parts := []string{}
+	if info.UptimeDays > 0 {
+		parts = append(parts, fmt.Sprintf("%d day%s", info.UptimeDays, plural(info.UptimeDays)))
+	}
+	if info.UptimeHours > 0 {
+		parts = append(parts, fmt.Sprintf("%d hour%s", info.UptimeHours, plural(info.UptimeHours)))
+	}
+	if info.UptimeMinutes > 0 {
+		parts = append(parts, fmt.Sprintf("%d minute%s", info.UptimeMinutes, plural(info.UptimeMinutes)))
+	}
+	parts = append(parts, fmt.Sprintf("%d second%s", info.UptimeSeconds, plural(info.UptimeSeconds)))
+	return strings.Join(parts, ", ")
+}
+
+func formatCores(info *collector.SystemInfo) string {
+	if info.CPUHz > 0 {
+		return fmt.Sprintf("%d physical · %d logical · %.2f GHz",
+			info.CPUCores, info.CPUThreads, info.CPUHz)
+	}
+	return fmt.Sprintf("%d physical · %d logical", info.CPUCores, info.CPUThreads)
+}
+
+func formatLoad(info *collector.SystemInfo) string {
+	return fmt.Sprintf("%.2f  %.2f  %.2f   (1m / 5m / 15m)",
+		info.LoadAvg1, info.LoadAvg5, info.LoadAvg15)
+}
+
+func formatUsers(info *collector.SystemInfo) string {
+	return fmt.Sprintf("%d logged in · %d active session%s",
+		info.UsersLoggedIn, info.ActiveSessions, plural(info.ActiveSessions))
+}
+
+func formatProcesses(info *collector.SystemInfo) string {
+	return fmt.Sprintf("%d user · %d total", info.ProcessesUser, info.ProcessesTotal)
+}
+
+func plural(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
 }

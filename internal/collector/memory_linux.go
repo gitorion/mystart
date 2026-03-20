@@ -4,88 +4,44 @@
 package collector
 
 import (
+	"bufio"
 	"context"
-	"fmt"
 	"strconv"
+	"strings"
 )
 
-// GatherMemoryInfo collects memory and swap information on Linux.
-func (s *SystemInfo) GatherMemoryInfo(ctx context.Context) error {
-	if err := s.gatherRAMInfo(ctx); err != nil {
-		return err
-	}
+func gatherMemory(ctx context.Context, info *SystemInfo) {
+	raw := execCommandSafe(ctx, "cat /proc/meminfo")
+	vals := parseMeminfo(raw)
 
-	if err := s.gatherSwapInfo(ctx); err != nil {
-		return err
-	}
+	kbToGB := func(kb float64) float64 { return kb / 1024 / 1024 }
 
-	return nil
+	info.MemTotalGB = kbToGB(vals["MemTotal"])
+	avail := vals["MemAvailable"]
+	info.MemUsedGB = kbToGB(vals["MemTotal"] - avail)
+
+	info.SwapTotalGB = kbToGB(vals["SwapTotal"])
+	info.SwapUsedGB = kbToGB(vals["SwapTotal"] - vals["SwapFree"])
 }
 
-// gatherRAMInfo collects RAM usage information.
-func (s *SystemInfo) gatherRAMInfo(ctx context.Context) error {
-	// Memory total
-	memTotalStr, err := execCommand(ctx, `cat /proc/meminfo | grep MemTotal | awk '{print $2}'`)
-	if err != nil {
-		return fmt.Errorf("getting memory total: %w", err)
+func parseMeminfo(raw string) map[string]float64 {
+	m := make(map[string]float64)
+	sc := bufio.NewScanner(strings.NewReader(raw))
+	for sc.Scan() {
+		line := sc.Text()
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := strings.TrimSpace(parts[0])
+		valStr := strings.Fields(strings.TrimSpace(parts[1]))
+		if len(valStr) == 0 {
+			continue
+		}
+		v, err := strconv.ParseFloat(valStr[0], 64)
+		if err == nil {
+			m[key] = v
+		}
 	}
-
-	memTotal, err := strconv.ParseFloat(memTotalStr, 64)
-	if err != nil {
-		return fmt.Errorf("%w: memory total", ErrParseFailure)
-	}
-
-	// Convert KB to GB
-	s.MemTotal = fmt.Sprintf("%.2fG", memTotal/1024/1024)
-
-	// Memory available
-	memAvailStr, err := execCommand(ctx, `cat /proc/meminfo | grep MemAvailable | awk '{print $2}'`)
-	if err != nil {
-		return fmt.Errorf("getting memory available: %w", err)
-	}
-
-	memAvail, err := strconv.ParseFloat(memAvailStr, 64)
-	if err != nil {
-		return fmt.Errorf("%w: memory available", ErrParseFailure)
-	}
-
-	// Calculate used memory
-	memUsed := (memTotal - memAvail) / 1024 / 1024
-	s.MemUsed = fmt.Sprintf("%.2fG", memUsed)
-
-	return nil
-}
-
-// gatherSwapInfo collects swap usage information.
-func (s *SystemInfo) gatherSwapInfo(ctx context.Context) error {
-	// Swap total
-	swapTotalStr, err := execCommand(ctx, `cat /proc/meminfo | grep SwapTotal | awk '{print $2}'`)
-	if err != nil {
-		return fmt.Errorf("getting swap total: %w", err)
-	}
-
-	swapTotal, err := strconv.ParseFloat(swapTotalStr, 64)
-	if err != nil {
-		return fmt.Errorf("%w: swap total", ErrParseFailure)
-	}
-
-	// Convert KB to GB
-	s.SwapTotal = fmt.Sprintf("%.2fG", swapTotal/1024/1024)
-
-	// Swap free
-	swapFreeStr, err := execCommand(ctx, `cat /proc/meminfo | grep SwapFree | awk '{print $2}'`)
-	if err != nil {
-		return fmt.Errorf("getting swap free: %w", err)
-	}
-
-	swapFree, err := strconv.ParseFloat(swapFreeStr, 64)
-	if err != nil {
-		return fmt.Errorf("%w: swap free", ErrParseFailure)
-	}
-
-	// Calculate used swap
-	swapUsed := (swapTotal - swapFree) / 1024 / 1024
-	s.SwapUsed = fmt.Sprintf("%.2fG", swapUsed)
-
-	return nil
+	return m
 }

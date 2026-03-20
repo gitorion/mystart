@@ -5,27 +5,25 @@ package collector
 
 import (
 	"context"
-	"fmt"
 	"strconv"
+	"strings"
 )
 
-// GatherUptimeInfo collects system uptime information on Linux.
-func (s *SystemInfo) GatherUptimeInfo(ctx context.Context) error {
-	uptimeStr, err := execCommand(ctx, "cut -d. -f1 /proc/uptime")
-	if err != nil {
-		return fmt.Errorf("getting uptime: %w", err)
+func gatherUptime(ctx context.Context, info *SystemInfo) {
+	// /proc/uptime: "123456.78 234567.89" – first field is seconds since boot
+	raw := execCommandSafe(ctx, "cat /proc/uptime")
+	fields := strings.Fields(raw)
+	if len(fields) == 0 {
+		return
 	}
-
-	uptime, err := strconv.Atoi(uptimeStr)
+	// Drop fractional part
+	secStr := strings.SplitN(fields[0], ".", 2)[0]
+	total, err := strconv.Atoi(secStr)
 	if err != nil {
-		return fmt.Errorf("%w: uptime", ErrParseFailure)
+		return
 	}
-
-	// Calculate time components
-	s.UptimeDays = uptime / 60 / 60 / 24
-	s.UptimeHours = (uptime / 60 / 60) % 24
-	s.UptimeMinutes = (uptime / 60) % 60
-	s.UptimeSeconds = uptime % 60
-
-	return nil
+	info.UptimeDays = total / 86400
+	info.UptimeHours = (total % 86400) / 3600
+	info.UptimeMinutes = (total % 3600) / 60
+	info.UptimeSeconds = total % 60
 }

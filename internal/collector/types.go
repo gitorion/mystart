@@ -1,109 +1,57 @@
 package collector
 
-import (
-	"bytes"
-	"context"
-	"errors"
-	"fmt"
-	"os/exec"
-	"strings"
-)
+// DiskMount represents a single mounted filesystem.
+type DiskMount struct {
+	Path        string
+	UsedGB      float64
+	TotalGB     float64
+	UsedPercent float64
+}
 
-// Error variables with Err prefix following Uber style guide.
-var (
-	ErrCommandFailed   = errors.New("command execution failed")
-	ErrInvalidOutput   = errors.New("invalid command output")
-	ErrParseFailure    = errors.New("failed to parse value")
-	ErrServiceNotFound = errors.New("service not found")
-)
-
-// SystemInfo holds all collected system information.
+// SystemInfo holds all collected system metrics.
 type SystemInfo struct {
 	// System identification
-	Uname    string
-	Distro   string
-	Host     string
+	Hostname string
 	User     string
-	HostTask string
+	OS       string
+	Kernel   string
+	Shell    string
 
-	// CPU information
-	CPUCores   int
-	CPUThreads int
-	CPUHz      float64
-	CPUUsage   string
-	LoadAvg    string
-
-	// Memory information
-	MemTotal  string
-	MemUsed   string
-	SwapTotal string
-	SwapUsed  string
-
-	// Disk information
-	DiskUse      string
-	DiskSize     string
-	DiskPoolSize string
-	DiskPoolUsed string
-
-	// Network information
-	IPv4 string
-	IPv6 string
-
-	// User session information
-	LastLog        string
-	ThisLog        string
-	ProcessesUser  string
-	ProcessesAll   string
-	ActiveSessions string
-	Users          int
-
-	// Uptime information
+	// Uptime
 	UptimeDays    int
 	UptimeHours   int
 	UptimeMinutes int
 	UptimeSeconds int
 
-	// Fan information (for specific hosts)
-	Fan1 string
-	Fan2 string
-	Fan3 string
-	Fan4 string
-	Fan5 string
-	Fan6 string
+	// CPU
+	CPUModel   string
+	CPUCores   int
+	CPUThreads int
+	CPUHz      float64 // GHz; 0 if unknown
+	CPUUsage   float64 // percentage 0–100
 
-	// VPN/Transmission information (for specific hosts)
-	NordAddr        string
-	TransAddr       string
-	VPNCheck        string
-	TranskickStatus string
-}
+	// Load averages
+	LoadAvg1  float64
+	LoadAvg5  float64
+	LoadAvg15 float64
 
-// NewSystemInfo creates and initializes a new SystemInfo instance.
-func NewSystemInfo() *SystemInfo {
-	return &SystemInfo{}
-}
+	// Memory (GB)
+	MemTotalGB  float64
+	MemUsedGB   float64
+	SwapTotalGB float64
+	SwapUsedGB  float64
 
-// execCommand executes a shell command with context and returns output.
-func execCommand(ctx context.Context, command string) (string, error) {
-	cmd := exec.CommandContext(ctx, "sh", "-c", command)
+	// Disk – one entry per visible mount point
+	DiskMounts []DiskMount
 
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	// Network
+	IPv4 string
+	IPv6 string
 
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("%w: %v (stderr: %s)", ErrCommandFailed, err, stderr.String())
-	}
-
-	return strings.TrimSpace(stdout.String()), nil
-}
-
-// execCommandSafe executes a command and returns empty string on error.
-// Used for optional system information that may not be available.
-func execCommandSafe(ctx context.Context, command string) string {
-	output, err := execCommand(ctx, command)
-	if err != nil {
-		return ""
-	}
-	return output
+	// Sessions / processes
+	ProcessesUser  int
+	ProcessesTotal int
+	ActiveSessions int
+	UsersLoggedIn  int
+	LastLogin      string
 }

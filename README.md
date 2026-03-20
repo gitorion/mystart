@@ -1,152 +1,141 @@
-# MyStart
+# mystart
 
-A cross-platform system information display tool written in Go, providing comprehensive system metrics and status information.
+A cross-platform terminal system information tool written in Go. Displays comprehensive system metrics in a clean, colour-coded dashboard.
+
+Works on any Linux distribution or macOS system for any user — no configuration required.
 
 ## Supported Platforms
 
-- ✅ **Linux** (Ubuntu, Debian, Fedora, Arch, etc.)
-- ✅ **macOS** (Intel and Apple Silicon)
+| Platform | Architecture |
+|----------|-------------|
+| macOS | Intel (amd64), Apple Silicon (arm64) |
+| Linux | x86_64 (amd64) |
 
 ## Features
 
-- System identification (OS, distribution, hostname, user)
-- CPU information (cores, threads, frequency, usage, load average)
-- Memory and swap usage
-- Disk usage and pool statistics
-- Network configuration (IPv4/IPv6)
-- User session information
-- System uptime breakdown
-- Host-specific features (Linux only):
-  - Fan speed monitoring (via liquidctl for specific hosts)
-  - VPN and Transmission status monitoring
+- **System** — hostname, user, OS name & version, kernel, shell, uptime
+- **Processor** — model name, physical/logical cores, frequency, usage %, load averages
+- **Memory** — RAM and swap with usage bars
+- **Storage** — all mounted filesystems with usage bars (auto GB / TB)
+- **Network** — primary IPv4 and IPv6 addresses
+- **Sessions** — logged-in users, active sessions, process counts, last login
+
+Progress bars change colour automatically: green below 60 %, yellow 60–80 %, red above 80 %.
+
+## Requirements
+
+- **Go 1.21+** — [install from golang.org](https://golang.org/dl/)
+- Standard system utilities only — no additional packages needed
 
 ## Installation
 
-### Prerequisites
-
-- Go 1.21 or higher
-- Linux or macOS operating system
-
-### Quick Build
+### Option 1 — Install to PATH with `go install`
 
 ```bash
-# Build for current platform
-make build
-
-# Or manually
-go build -o mystart ./cmd/mystart
-```
-
-### Cross-Platform Builds
-
-```bash
-# Build for Linux
-make build-linux
-
-# Build for macOS
-make build-darwin
-
-# Build for all platforms
-make build-all
-```
-
-### Install
-
-```bash
-make install
-
-# Or manually
-go install ./cmd/mystart
-```
-
-## Usage
-
-Simply run the binary:
-
-```bash
-# Run directly
-./bin/mystart
-
-# Or if installed
+go install github.com/orion/mystart/cmd/mystart@latest
 mystart
-
-# Using make
-make run
 ```
 
-### Example Output
+### Option 2 — Build from source
+
+```bash
+git clone https://github.com/orion/mystart.git
+cd mystart
+make build
+./bin/mystart
+```
+
+### Option 3 — Run without installing
+
+```bash
+git clone https://github.com/orion/mystart.git
+cd mystart
+go run ./cmd/mystart/
+```
+
+## Build targets
+
+```bash
+make build          # build for current platform  →  bin/mystart
+make build-linux    # cross-compile for Linux     →  bin/mystart-linux
+make build-darwin   # cross-compile for macOS     →  bin/mystart-darwin-arm64 / amd64
+make build-all      # all of the above
+make install        # install to $GOPATH/bin
+make run            # build and run immediately
+make clean          # remove bin/
+```
+
+## Example Output
 
 ```
-=======================================================================
-User: orion	Host: server01 👉 VM - Dockerised Plex Media Server
-=======================================================================
-[*] Login details		: 13 Feb 22:03 still from ttys000
-[*] System details		: ubuntu | Ubuntu 22.04 LTS
-[*] System uptime		: 14 days 14 hours 8 minutes 30 seconds
-[*] System load		: 2.12 2.78 2.81
-[*] CPU info			: 27.20 % in use of 8cores/16threads at 3.60GHz
-[*] Memory in use		: 1.60G of 8.00G
-[*] Swap memory in use		: 0.27G of 4.00G
-[*] Root disk usage		: 45% of 100G
-[*] Disk pool size		: 2.5TB
-[*] Disk pool used		: 1.8TB
-[*] System processes		: orion running 149, total of 241 running on server01
-[*] Users			: 2 user(s) currently logged in
-[*] Sessions		: 3 current active session(s)
-[*] Last system login		: orion on pts/0, 13 Feb 21:25 from 192.168.1.100
-=======================================================================
-[*] IPv4 address		: 192.168.1.50
-[*] IPv6 address		: fe80::1234:5678:90ab:cdef
-=======================================================================
+╭──────────────────────────────────────────────────────────────────────────╮
+│                           ◈  SYSTEM STATUS  ◈                            │
+│                           server01  ·  alice                             │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ SYSTEM                                                                │
+│    Hostname            server01                                          │
+│    User                alice                                             │
+│    OS                  Ubuntu 22.04.3 LTS                                │
+│    Kernel              Linux 5.15.0-91-generic x86_64                   │
+│    Shell               bash                                              │
+│    Uptime              14 days, 8 hours, 30 minutes, 12 seconds          │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ PROCESSOR                                                             │
+│    Model               Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz        │
+│    Cores / Threads     8 physical · 16 logical · 3.80 GHz               │
+│    Usage               ████░░░░░░░░░░░░░░░░  21.3%                       │
+│    Load Average        2.12  2.78  2.81   (1m / 5m / 15m)                │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ MEMORY                                                                │
+│    RAM                 ████░░░░░░░░░░░░░░░░  1.6 / 8.0 GB  (20.0%)       │
+│    Swap                █░░░░░░░░░░░░░░░░░░░  0.3 / 4.0 GB  (6.8%)        │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ STORAGE                                                               │
+│    /                   █████████░░░░░░░░░░░  45.0 / 100.0 GB  (45.0%)   │
+│    /home               ██████████████░░░░░░  420.0 / 600.0 GB  (70.0%)  │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ NETWORK                                                               │
+│    IPv4                192.168.1.50                                      │
+│    IPv6                fd00::1:2:3:4                                     │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ SESSIONS                                                              │
+│    Users               2 logged in · 3 active sessions                   │
+│    Processes           149 user · 241 total                              │
+│    Last Login          alice from 192.168.1.100  Mon 13 Feb 21:25        │
+╰──────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Project Structure
 
 ```
 mystart/
-├── cmd/
-│   └── mystart/           # Application entry point
-│       └── main.go
+├── cmd/mystart/           # Binary entry point
+│   └── main.go
 ├── internal/
-│   ├── collector/         # System information collection
-│   │   ├── collector.go   # Main collector coordinator
-│   │   ├── types.go       # Shared types and utilities
-│   │   ├── *_linux.go     # Linux-specific implementations
-│   │   ├── *_darwin.go    # macOS-specific implementations
-│   │   └── host.go        # Host-specific features
-│   ├── display/           # Display formatting
-│   │   └── display.go
-│   └── config/            # Configuration and constants
-│       └── config.go
-├── Makefile               # Build automation
+│   ├── collector/         # System metric collection
+│   │   ├── types.go       # SystemInfo and DiskMount types
+│   │   ├── collector.go   # Orchestration and exec helpers
+│   │   ├── system_{darwin,linux}.go
+│   │   ├── cpu_{darwin,linux}.go
+│   │   ├── memory_{darwin,linux}.go
+│   │   ├── disk_{darwin,linux}.go
+│   │   ├── network_{darwin,linux}.go
+│   │   ├── uptime_{darwin,linux}.go
+│   │   └── users_{darwin,linux}.go
+│   ├── display/
+│   │   └── display.go     # Coloured box UI
+│   └── config/
+│       └── config.go      # Layout and timeout constants
+├── Makefile
 ├── go.mod
-├── go.sum
-└── README.md
+└── go.sum
 ```
 
-### Platform-Specific Code
-
-The project uses Go build tags to provide platform-specific implementations:
-
-- **Linux**: Uses `/proc` filesystem and `ip` command
-- **macOS**: Uses `sysctl`, `sw_vers`, and BSD utilities
-
-## Design Principles
-
-This project follows the [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md):
-
-- Error handling with custom error types
-- Proper naming conventions (package names, functions, variables)
-- Context-based timeout management
-- Clear separation of concerns
-- Minimal use of global state
-- Proper resource cleanup with defer
-- Pre-allocated slices where capacity is known
-- Interface-based design where appropriate
+Platform-specific implementations use Go build tags (`//go:build darwin`, `//go:build linux`) so only the correct code is compiled for each target.
 
 ## Dependencies
 
-- [github.com/fatih/color](https://github.com/fatih/color) - Terminal color output
+- [`github.com/fatih/color`](https://github.com/fatih/color) — terminal colour output (only external dependency)
 
 ## License
 

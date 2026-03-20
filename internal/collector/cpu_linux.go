@@ -6,147 +6,75 @@ package collector
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 )
 
-// GatherCPUInfo collects CPU-related information on Linux.
-func (s *SystemInfo) GatherCPUInfo(ctx context.Context) error {
-	if err := s.gatherCPUCores(ctx); err != nil {
-		return err
+func gatherCPU(ctx context.Context, info *SystemInfo) {
+	// CPU model
+	info.CPUModel = execCommandSafe(ctx,
+		`grep -m1 "model name" /proc/cpuinfo | cut -d: -f2 | sed 's/^ //'`)
+
+	// Physical cores
+	coresStr := execCommandSafe(ctx,
+		`grep -m1 "cpu cores" /proc/cpuinfo | awk '{print $4}'`)
+	if n, err := strconv.Atoi(coresStr); err == nil && n > 0 {
+		info.CPUCores = n
 	}
 
-	if err := s.calculateCPUSpeed(ctx); err != nil {
-		return err
-	}
-
-	if err := s.calculateCPUUsage(ctx); err != nil {
-		return err
-	}
-
-	if err := s.gatherLoadAverage(ctx); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// gatherCPUCores retrieves the number of CPU cores.
-func (s *SystemInfo) gatherCPUCores(ctx context.Context) error {
-	coresStr, err := execCommand(ctx, `cat /proc/cpuinfo | grep "cpu cores" | head -n 1 | awk '{print $4}'`)
-	if err != nil {
-		return fmt.Errorf("getting cpu cores: %w", err)
-	}
-
-	cores, err := strconv.Atoi(coresStr)
-	if err != nil {
-		return fmt.Errorf("%w: cpu cores", ErrParseFailure)
-	}
-
-	s.CPUCores = cores
-	return nil
-}
-
-// calculateCPUSpeed calculates average CPU speed across all threads.
-func (s *SystemInfo) calculateCPUSpeed(ctx context.Context) error {
-	output, err := execCommand(ctx, "cat /proc/cpuinfo | grep MHz | awk '{print $4}'")
-	if err != nil {
-		return fmt.Errorf("getting cpu speed: %w", err)
-	}
-
-	var totalSpeed float64
-	threadCount := 0
-
-	scanner := bufio.NewScanner(strings.NewReader(output))
-	for scanner.Scan() {
-		speed, err := strconv.ParseFloat(scanner.Text(), 64)
-		if err != nil {
-			continue
+	// Logical cores + average frequency
+	mhzOut := execCommandSafe(ctx, `grep "cpu MHz" /proc/cpuinfo | awk '{print $4}'`)
+	if mhzOut != "" {
+		var total float64
+		var count int
+		sc := bufio.NewScanner(strings.NewReader(mhzOut))
+		for sc.Scan() {
+			if v, err := strconv.ParseFloat(sc.Text(), 64); err == nil {
+				total += v
+				count++
+			}
 		}
-		totalSpeed += speed
-		threadCount++
-	}
-
-	if threadCount == 0 {
-		return fmt.Errorf("%w: no CPU speed information found", ErrInvalidOutput)
-	}
-
-	s.CPUThreads = threadCount
-	// Convert MHz to GHz
-	s.CPUHz = (totalSpeed / float64(threadCount)) / 1000.0
-
-	return nil
-}
-
-// calculateCPUUsage calculates current CPU usage percentage.
-func (s *SystemInfo) calculateCPUUsage(ctx context.Context) error {
-	// Read CPU stats from /proc/stat (most reliable method)
-	// First snapshot
-	stat1, err := execCommand(ctx, `cat /proc/stat | grep "^cpu " | awk '{print $2" "$3" "$4" "$5" "$6" "$7" "$8}'`)
-	if err != nil {
-		return fmt.Errorf("reading /proc/stat: %w", err)
-	}
-
-	// Sleep briefly to get a delta
-	_, _ = execCommand(ctx, "sleep 0.2")
-
-	// Second snapshot
-	stat2, err := execCommand(ctx, `cat /proc/stat | grep "^cpu " | awk '{print $2" "$3" "$4" "$5" "$6" "$7" "$8}'`)
-	if err != nil {
-		return fmt.Errorf("reading /proc/stat: %w", err)
-	}
-
-	// Parse both snapshots
-	fields1 := strings.Fields(stat1)
-	fields2 := strings.Fields(stat2)
-
-	if len(fields1) < 4 || len(fields2) < 4 {
-		return fmt.Errorf("%w: invalid /proc/stat format", ErrInvalidOutput)
-	}
-
-	// Calculate totals and idle for both snapshots
-	var total1, idle1, total2, idle2 float64
-
-	for i := 0; i < len(fields1) && i < 7; i++ {
-		val, _ := strconv.ParseFloat(fields1[i], 64)
-		total1 += val
-		if i == 3 { // idle is the 4th field
-			idle1 = val
+		if count > 0 {
+			info.CPUThreads = count
+			info.CPUHz = (total / float64(count)) / 1000.0
 		}
 	}
+	if info.CPUCores == 0 && info.CPUThreads > 0 {
+		info.CPUCores = info.CPUThreads
+	}
 
-	for i := 0; i < len(fields2) && i < 7; i++ {
-		val, _ := strconv.ParseFloat(fields2[i], 64)
-		total2 += val
-		if i == 3 { // idle is the 4th field
-			idle2 = val
+	// CPU usage: two /proc/stat snapshots with a small sleep between them
+	cpuUsage := func() float64 {
+		parse := func(line string) (total, idle float64) {
+			fields := strings.Fields(line)
+			for i := 1; i < len(fields) && i <= 8; i++ {
+				v, _ := strconv.ParseFloat(fields[i], 64)
+				total += v
+				if i == 4 {
+					idle = v
+				}
+			}
+			return
 		}
+		stat1 := execCommandSafe(ctx, `grep "^cpu " /proc/stat`)
+		execCommandSafe(ctx, "sleep 0.2")
+		stat2 := execCommandSafe(ctx, `grep "^cpu " /proc/stat`)
+		t1, i1 := parse(stat1)
+		t2, i2 := parse(stat2)
+		dt := t2 - t1
+		if dt == 0 {
+			return 0
+		}
+		return 100.0 * (dt - (i2 - i1)) / dt
 	}
+	info.CPUUsage = cpuUsage()
 
-	// Calculate the delta
-	totalDelta := total2 - total1
-	idleDelta := idle2 - idle1
-
-	if totalDelta == 0 {
-		s.CPUUsage = "0.00%"
-		return nil
+	// Load average from /proc/loadavg
+	lavg := execCommandSafe(ctx, "cat /proc/loadavg")
+	parts := strings.Fields(lavg)
+	if len(parts) >= 3 {
+		info.LoadAvg1, _ = strconv.ParseFloat(parts[0], 64)
+		info.LoadAvg5, _ = strconv.ParseFloat(parts[1], 64)
+		info.LoadAvg15, _ = strconv.ParseFloat(parts[2], 64)
 	}
-
-	// CPU usage percentage
-	cpuUsage := 100.0 * (totalDelta - idleDelta) / totalDelta
-	s.CPUUsage = fmt.Sprintf("%.2f%%", cpuUsage)
-
-	return nil
-}
-
-// gatherLoadAverage retrieves system load average.
-func (s *SystemInfo) gatherLoadAverage(ctx context.Context) error {
-	loadAvg, err := execCommand(ctx, `cat /proc/loadavg | awk '{print $1 " " $2 " " $3 " " $4}'`)
-	if err != nil {
-		return fmt.Errorf("getting load average: %w", err)
-	}
-
-	s.LoadAvg = loadAvg
-	return nil
 }
