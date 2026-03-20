@@ -45,13 +45,21 @@ brew install go
 go install github.com/gitorion/mystart/cmd/mystart@latest
 ```
 
-**3. Add to shell startup** — zsh is the default shell on macOS:
+**3. Add to shell startup:**
+
+zsh (default on macOS):
 ```bash
 echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.zshrc
 echo 'mystart' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-Open a new terminal and mystart will run automatically.
+bash:
+```bash
+echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bash_profile
+echo 'mystart' >> ~/.bash_profile
+source ~/.bash_profile
+```
 
 ---
 
@@ -76,15 +84,21 @@ sudo pacman -S go
 go install github.com/gitorion/mystart/cmd/mystart@latest
 ```
 
-**3. Add to shell startup** — bash is the common default on Linux:
+**3. Add to shell startup:**
+
+bash (default on most Linux distributions):
 ```bash
 echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.bashrc
 echo 'mystart' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-Open a new terminal and mystart will run automatically.
-
----
+zsh:
+```bash
+echo 'export PATH="$PATH:$HOME/go/bin"' >> ~/.zshrc
+echo 'mystart' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ---
 
