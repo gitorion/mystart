@@ -4,6 +4,57 @@ A cross-platform terminal system information tool written in Go. Displays compre
 
 Works on any Linux distribution or macOS system for any user — no configuration required.
 
+## Example Output
+
+```
+╭──────────────────────────────────────────────────────────────────────────╮
+│                                                                          │
+│                         ◈  SERVER01 STATUS  ◈                            │
+│                           server01  ·  alice                             │
+│                                                                          │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ SYSTEM                                                                │
+│    Hostname            server01                                          │
+│    User                alice                                             │
+│    OS                  Ubuntu 22.04.3 LTS                                │
+│    Kernel              Linux 5.15.0-91-generic x86_64                   │
+│    Shell               bash                                              │
+│    Uptime              14 days, 8 hours, 30 minutes, 12 seconds          │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ PROCESSOR                                                             │
+│    Model               Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz        │
+│    Cores / Threads     8 physical · 16 logical · 3.80 GHz               │
+│    Usage               ████░░░░░░░░░░░░░░░░  21.3%                       │
+│    Load Average        2.12  2.78  2.81   (1m / 5m / 15m)                │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ MEMORY                                                                │
+│    RAM                 ████░░░░░░░░░░░░░░░░  1.6 / 8.0 GB  (20.0%)       │
+│    Swap                █░░░░░░░░░░░░░░░░░░░  0.3 / 4.0 GB  (6.8%)        │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ STORAGE                                                               │
+│    /                   █████████░░░░░░░░░░░  45.0 / 100.0 GB  (45.0%)   │
+│    /home               ██████████████░░░░░░  420.0 / 600.0 GB  (70.0%)  │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ GPU                                                                   │
+│    Model               NVIDIA GeForce RTX 3080                           │
+│    VRAM                3456 / 10240 MB                                   │
+│    Usage               34%                                               │
+│    Temperature         62°C                                              │
+│    Driver              535.129.03                                         │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ NETWORK                                                               │
+│    IPv4                192.168.1.50                                      │
+│    IPv6                fd00::1:2:3:4                                     │
+╠══════════════════════════════════════════════════════════════════════════╣
+│  ◆ SESSIONS                                                              │
+│    Users               2 logged in · 3 active sessions                   │
+│    Processes           149 user · 241 total                              │
+│    Last Login          alice from 192.168.1.100  Mon 13 Feb 21:25        │
+╰──────────────────────────────────────────────────────────────────────────╯
+```
+
+Each section header has its own accent colour. Progress bars change colour automatically: green below 60 %, yellow 60–80 %, red above 80 %. The GPU section only appears when a GPU is detected.
+
 ## Supported Platforms
 
 | Platform | Architecture |
@@ -13,14 +64,13 @@ Works on any Linux distribution or macOS system for any user — no configuratio
 
 ## Features
 
-- **System** — hostname, user, OS name & version, kernel, shell, uptime
-- **Processor** — model name, physical/logical cores, frequency, usage %, load averages
-- **Memory** — RAM and swap with usage bars
+- **System** — hostname, user, OS, kernel, shell, uptime
+- **Processor** — model, cores/threads, frequency, usage %, load averages
+- **Memory** — RAM and swap with colour-coded usage bars
 - **Storage** — all mounted filesystems with usage bars (auto GB / TB)
+- **GPU** — model, VRAM, usage, temperature, driver (when available)
 - **Network** — primary IPv4 and IPv6 addresses
 - **Sessions** — logged-in users, active sessions, process counts, last login
-
-Progress bars change colour automatically: green below 60 %, yellow 60–80 %, red above 80 %.
 
 ## Requirements
 
@@ -31,7 +81,7 @@ Progress bars change colour automatically: green below 60 %, yellow 60–80 %, r
 
 ## Quick Start
 
-The fastest way to get `mystart` running automatically every time you open a terminal.
+Install `mystart` and have it run automatically every time you open a terminal.
 
 ### macOS
 
@@ -133,79 +183,28 @@ cd mystart
 go run ./cmd/mystart/
 ```
 
-## Build targets
-
-```bash
-make build          # build for current platform  →  bin/mystart
-make build-linux    # cross-compile for Linux     →  bin/mystart-linux
-make build-darwin   # cross-compile for macOS     →  bin/mystart-darwin-arm64 / amd64
-make build-all      # all of the above
-make install        # install to $GOPATH/bin
-make run            # build and run immediately
-make clean          # remove bin/
-```
-
-## Example Output
-
-```
-╭──────────────────────────────────────────────────────────────────────────╮
-│                           ◈  SYSTEM STATUS  ◈                            │
-│                           server01  ·  alice                             │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ SYSTEM                                                                │
-│    Hostname            server01                                          │
-│    User                alice                                             │
-│    OS                  Ubuntu 22.04.3 LTS                                │
-│    Kernel              Linux 5.15.0-91-generic x86_64                   │
-│    Shell               bash                                              │
-│    Uptime              14 days, 8 hours, 30 minutes, 12 seconds          │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ PROCESSOR                                                             │
-│    Model               Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz        │
-│    Cores / Threads     8 physical · 16 logical · 3.80 GHz               │
-│    Usage               ████░░░░░░░░░░░░░░░░  21.3%                       │
-│    Load Average        2.12  2.78  2.81   (1m / 5m / 15m)                │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ MEMORY                                                                │
-│    RAM                 ████░░░░░░░░░░░░░░░░  1.6 / 8.0 GB  (20.0%)       │
-│    Swap                █░░░░░░░░░░░░░░░░░░░  0.3 / 4.0 GB  (6.8%)        │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ STORAGE                                                               │
-│    /                   █████████░░░░░░░░░░░  45.0 / 100.0 GB  (45.0%)   │
-│    /home               ██████████████░░░░░░  420.0 / 600.0 GB  (70.0%)  │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ NETWORK                                                               │
-│    IPv4                192.168.1.50                                      │
-│    IPv6                fd00::1:2:3:4                                     │
-╠══════════════════════════════════════════════════════════════════════════╣
-│  ◆ SESSIONS                                                              │
-│    Users               2 logged in · 3 active sessions                   │
-│    Processes           149 user · 241 total                              │
-│    Last Login          alice from 192.168.1.100  Mon 13 Feb 21:25        │
-╰──────────────────────────────────────────────────────────────────────────╯
-```
-
 ## Project Structure
 
 ```
 mystart/
-├── cmd/mystart/           # Binary entry point
-│   └── main.go
+├── cmd/mystart/
+│   └── main.go              # Entry point
 ├── internal/
-│   ├── collector/         # System metric collection
-│   │   ├── types.go       # SystemInfo and DiskMount types
-│   │   ├── collector.go   # Orchestration and exec helpers
+│   ├── collector/
+│   │   ├── types.go          # SystemInfo and DiskMount types
+│   │   ├── collector.go      # Orchestration and exec helpers
 │   │   ├── system_{darwin,linux}.go
 │   │   ├── cpu_{darwin,linux}.go
 │   │   ├── memory_{darwin,linux}.go
 │   │   ├── disk_{darwin,linux}.go
+│   │   ├── gpu_{darwin,linux}.go
 │   │   ├── network_{darwin,linux}.go
 │   │   ├── uptime_{darwin,linux}.go
 │   │   └── users_{darwin,linux}.go
 │   ├── display/
-│   │   └── display.go     # Coloured box UI
+│   │   └── display.go        # Colour-coded box UI
 │   └── config/
-│       └── config.go      # Layout and timeout constants
+│       └── config.go         # Layout and timeout constants
 ├── Makefile
 ├── go.mod
 └── go.sum
