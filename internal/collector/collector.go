@@ -29,10 +29,11 @@ func (c *Collector) GatherAll() (*SystemInfo, error) {
 	gatherSystem(ctx, info)
 
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(7)
 	go func() { defer wg.Done(); gatherCPU(ctx, info) }()
 	go func() { defer wg.Done(); gatherMemory(ctx, info) }()
 	go func() { defer wg.Done(); gatherDisk(ctx, info) }()
+	go func() { defer wg.Done(); gatherGPU(ctx, info) }()
 	go func() { defer wg.Done(); gatherNetwork(ctx, info) }()
 	go func() { defer wg.Done(); gatherUptime(ctx, info) }()
 	go func() { defer wg.Done(); gatherUsers(ctx, info) }()

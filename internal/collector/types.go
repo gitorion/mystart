@@ -44,6 +44,13 @@ type SystemInfo struct {
 	// Disk – one entry per visible mount point
 	DiskMounts []DiskMount
 
+	// GPU (empty if no GPU detected)
+	GPUModel   string
+	GPUVram    string // human-readable, e.g. "8 GB"
+	GPUUsage   string // percentage string, e.g. "34%", empty if unavailable
+	GPUTemp    string // e.g. "62°C", empty if unavailable
+	GPUDriver  string // driver/metal version, empty if unavailable
+
 	// Network
 	IPv4 string
 	IPv6 string

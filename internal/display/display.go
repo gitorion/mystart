@@ -40,6 +40,7 @@ var (
 	cProc     = color.New(color.FgHiYellow, color.Bold)
 	cMem      = color.New(color.FgHiMagenta, color.Bold)
 	cStorage  = color.New(color.FgHiBlue, color.Bold)
+	cGPU      = color.New(color.FgHiWhite, color.Bold)
 	cNetwork  = color.New(color.FgHiGreen, color.Bold)
 	cSessions = color.New(color.FgHiRed, color.Bold)
 
@@ -67,7 +68,7 @@ func Render(info *collector.SystemInfo) {
 	// ── Title block ─────────────────────────────────────────
 	p(topBorder())
 	p(emptyRow())
-	p(titleLine())
+	p(titleLine(info.Hostname))
 	p(subtitleLine(info.Hostname, info.User))
 	p(emptyRow())
 	p(divider())
@@ -108,6 +109,25 @@ func Render(info *collector.SystemInfo) {
 		p(barRowDisk(m))
 	}
 	p(divider())
+
+	// ── GPU (only if detected) ──────────────────────────────
+	if info.GPUModel != "" {
+		p(sectionHeader("GPU", cGPU))
+		p(row("Model", info.GPUModel))
+		if info.GPUVram != "" {
+			p(row("VRAM", info.GPUVram))
+		}
+		if info.GPUUsage != "" {
+			p(row("Usage", info.GPUUsage))
+		}
+		if info.GPUTemp != "" {
+			p(row("Temperature", info.GPUTemp))
+		}
+		if info.GPUDriver != "" {
+			p(row("Driver", info.GPUDriver))
+		}
+		p(divider())
+	}
 
 	// ── NETWORK ─────────────────────────────────────────────
 	p(sectionHeader("NETWORK", cNetwork))
@@ -264,17 +284,21 @@ func emptyRow() string {
 	return cBorder.Sprint("│") + strings.Repeat(" ", innerWidth) + cBorder.Sprint("│")
 }
 
-func titleLine() string {
-	// Visual: "◈  SYSTEM STATUS  ◈" = 19 chars
-	const visualLen = 19
+func titleLine(hostname string) string {
+	// Visual: "◈  <HOSTNAME> STATUS  ◈"
+	title := strings.ToUpper(hostname) + " STATUS"
+	visualLen := 1 + 2 + len([]rune(title)) + 2 + 1 // "◈  " + title + "  ◈"
 	total := innerWidth - visualLen
 	left := total / 2
 	right := total - left
+	if left < 0 {
+		left, right = 0, 0
+	}
 	return fmt.Sprintf("%s%s%s  %s  %s%s%s",
 		cBorder.Sprint("│"),
 		strings.Repeat(" ", left),
 		cTitleDeco.Sprint("◈"),
-		cTitleText.Sprint("SYSTEM STATUS"),
+		cTitleText.Sprint(title),
 		cTitleDeco.Sprint("◈"),
 		strings.Repeat(" ", right),
 		cBorder.Sprint("│"),
