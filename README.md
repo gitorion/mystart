@@ -9,27 +9,27 @@ Works on any Linux distribution or macOS system for any user — no configuratio
 ```
 ╭──────────────────────────────────────────────────────────────────────────╮
 │                                                                          │
-│                         ◈  SERVER01 STATUS  ◈                            │
-│                           server01  ·  alice                             │
+│                        ◈  SERVER01 STATUS  ◈                             │
+│                          server01  ·  alice                              │
 │                                                                          │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ SYSTEM                                                                │
 │    Hostname            server01                                          │
 │    User                alice                                             │
 │    OS                  Ubuntu 22.04.3 LTS                                │
-│    Kernel              Linux 5.15.0-91-generic x86_64                   │
+│    Kernel              Linux 5.15.0-91-generic x86_64                    │
 │    Shell               bash                                              │
 │    Uptime              14 days, 8 hours, 30 minutes, 12 seconds          │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ PROCESSOR                                                             │
 │    Model               Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz        │
 │    Cores / Threads     8 physical · 16 logical · 3.80 GHz               │
-│    Usage               ████░░░░░░░░░░░░░░░░  21.3%                       │
-│    Load Average        2.12  2.78  2.81   (1m / 5m / 15m)                │
+│    Usage               ████░░░░░░░░░░░░░░░░  21.3%                      │
+│    Load Average        2.12  2.78  2.81   (1m / 5m / 15m)               │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ MEMORY                                                                │
-│    RAM                 ████░░░░░░░░░░░░░░░░  1.6 / 8.0 GB  (20.0%)       │
-│    Swap                █░░░░░░░░░░░░░░░░░░░  0.3 / 4.0 GB  (6.8%)        │
+│    RAM                 ████░░░░░░░░░░░░░░░░  1.6 / 8.0 GB  (20.0%)      │
+│    Swap                █░░░░░░░░░░░░░░░░░░░  0.3 / 4.0 GB  (6.8%)       │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ STORAGE                                                               │
 │    /                   █████████░░░░░░░░░░░  45.0 / 100.0 GB  (45.0%)   │
@@ -43,8 +43,8 @@ Works on any Linux distribution or macOS system for any user — no configuratio
 │    Driver              535.129.03                                         │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ NETWORK                                                               │
-│    IPv4                192.168.1.50                                      │
-│    IPv6                fd00::1:2:3:4                                     │
+│    IPv4                192.168.1.50                                       │
+│    IPv6                fd00::1:2:3:4                                      │
 ╠══════════════════════════════════════════════════════════════════════════╣
 │  ◆ SESSIONS                                                              │
 │    Users               2 logged in · 3 active sessions                   │
